@@ -461,10 +461,18 @@ document.getElementById('btn-logout').addEventListener('click', async function()
 // SESIÓN - Un único punto de control
 // ============================================================
 async function initSession(){
-  var{data:{session}}=await sb.auth.getSession();
-  if(session&&session.user){
-    await startApp(session.user);
-  } else {
+  try{
+    var{data,error}=await sb.auth.getSession();
+    if(error)throw error;
+    var session=data?data.session:null;
+    if(session&&session.user){
+      await startApp(session.user);
+    } else {
+      showLoading(false);
+      document.getElementById('auth-screen').style.display='flex';
+    }
+  } catch(e){
+    console.error('initSession error:',e);
     showLoading(false);
     document.getElementById('auth-screen').style.display='flex';
   }
@@ -1102,6 +1110,7 @@ document.getElementById('g-bol').addEventListener('change',updateSubSelect);
 // ============================================================
 // ARRANQUE
 // ============================================================
+setTimeout(function(){var o=document.getElementById('loading-overlay');if(o&&o.style.display!=='none'){o.style.display='none';document.getElementById('auth-screen').style.display='flex';}},8000);
 initSession();
 </script>
 </body>
