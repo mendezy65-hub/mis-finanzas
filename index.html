@@ -2721,11 +2721,11 @@ async function procesarImportacion(input){
         input.value='';return;
       }
       
-      var confirmar=confirm('Se encontraron '+facturas.length+' facturas por un total de $'+
-        facturas.reduce(function(s,f){return s+f.monto;},0).toFixed(2)+
-        '
+      var confirmar=confirm('Se encontraron '+facturas.length+' facturas por $'+facturas.reduce(function(s,f){return s+f.monto;},0).toFixed(2)+'\n\n¿Importar como gastos?');
 
-¿Importar como gastos?');
+
+
+
       if(!confirmar){input.value='';return;}
       
       // Insertar en Supabase
@@ -2739,13 +2739,13 @@ async function procesarImportacion(input){
         if(error)errors++;else inserted++;
       }
       
-      alert('✅ Importación completada:
-'+inserted+' facturas importadas'+
-        (errors?'
-⚠️ '+errors+' errores':'')+
-        '
+      alert('Importacion completada: '+inserted+' facturas importadas'+(errors?' - '+errors+' errores':'')+'. Podes verlas en Movimientos.');
 
-Podés verlas en Movimientos → Egresos');
+
+
+
+
+
       
       // Recargar datos
       await loadAll();
