@@ -1,5 +1,17 @@
+<!-- 
+  MIS FINANZAS - v2.4 - 2026-03-29
+  Cambios en esta version:
+  - loginEmail llama startApp directamente (fix Chrome/GitHub Pages)
+  - onAuthStateChange simplificado, solo maneja SIGNED_OUT
+  - try/catch en initSession con timeout de 8 segundos
+  - localStorage en vez de cookies para sesion (compatibilidad Chrome)
+  - Manejo de errores visible en todos los botones CRUD
+  - Bolsillos se abren automaticamente al crear
+  - Boton Salir con addEventListener (fix definitivo)
+  Para verificar: document.querySelector('html').dataset.version en consola
+-->
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-version="2.4">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -421,11 +433,12 @@ function switchAuth(mode,btn){
 async function loginEmail(){
   var email=document.getElementById('l-email').value.trim();
   var pass=document.getElementById('l-pass').value;
-  if(!email||!pass){showMsg('Completá email y contraseña','error');return;}
+  if(!email||!pass){showMsg('Completa email y contraseña','error');return;}
   showLoading(true);
-  var{error}=await sb.auth.signInWithPassword({email:email,password:pass});
-  showLoading(false);
-  if(error)showMsg(error.message,'error');
+  var{data,error}=await sb.auth.signInWithPassword({email:email,password:pass});
+  if(error){showLoading(false);showMsg(error.message,'error');return;}
+  if(data&&data.user){await startApp(data.user);}
+  else{showLoading(false);showMsg('No se pudo iniciar sesion','error');}
 }
 
 async function registerEmail(){
@@ -496,11 +509,10 @@ async function startApp(user){
   renderAll();
 }
 
-// Escuchar cambios de sesión (login/logout/token refresh)
+// Escuchar cambios de sesion
 sb.auth.onAuthStateChange(async function(event,session){
-  if(event==='SIGNED_IN'&&session&&session.user&&!userId){
-    await startApp(session.user);
-  } else if(event==='SIGNED_OUT'){
+  if(event==='SIGNED_OUT'||event==='USER_DELETED'){
+    userId=null;
     document.getElementById('app-screen').style.display='none';
     document.getElementById('auth-screen').style.display='flex';
   }
