@@ -412,11 +412,12 @@ async function forgotPass(){
 }
 
 async function logout(){
-  await sb.auth.signOut();
-  document.getElementById('app-screen').style.display='none';
-  document.getElementById('auth-screen').style.display='flex';
+  var{error}=await sb.auth.signOut();
+  if(error){console.error('Logout error:',error);}
   userId=null;
   DATA={bancos:[],ingresos:[],cxc:[],prestamos:[],hipotecas:[],tarjetas:[],servicios:[],seguros:[],gastos:[],bolsillos:[],partidas:[],fondos:[]};
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
 }
 
 // SESSION LISTENER
@@ -429,10 +430,24 @@ sb.auth.onAuthStateChange(async function(event,session){
     await loadAll();
     renderAll();
   } else {
+    userId=null;
     document.getElementById('auth-screen').style.display='flex';
     document.getElementById('app-screen').style.display='none';
   }
 });
+
+// Verificar sesión activa al cargar la página
+(async function(){
+  var{data:{session}}=await sb.auth.getSession();
+  if(session&&session.user){
+    userId=session.user.id;
+    document.getElementById('user-email-pill').textContent=session.user.email;
+    document.getElementById('auth-screen').style.display='none';
+    document.getElementById('app-screen').style.display='block';
+    await loadAll();
+    renderAll();
+  }
+})();
 
 // LOAD ALL DATA
 async function loadAll(){
@@ -776,20 +791,24 @@ function renderAll(){
 
 // CRUD OPERATIONS
 async function addB(){
+  if(!userId){alert('Sesion expirada. Recarga la pagina.');return;}
   var banco=document.getElementById('b-banco').value,tipo=document.getElementById('b-tipo').value,nombre=document.getElementById('b-nom').value.trim(),saldo=parseFloat(document.getElementById('b-sal').value)||0;
-  if(!nombre)return;
-  var{data}=await sb.from('bancos').insert([{user_id:userId,banco,tipo,nombre,saldo}]).select();
-  if(data)DATA.bancos.push(data[0]);
+  if(!nombre){alert('Ingresa un nombre para la cuenta.');return;}
+  var{data,error}=await sb.from('bancos').insert([{user_id:userId,banco,tipo,nombre,saldo}]).select();
+  if(error){alert('Error: '+error.message);return;}
+  if(data&&data[0])DATA.bancos.push(data[0]);
   document.getElementById('b-nom').value='';document.getElementById('b-sal').value='';
   renderAll();
 }
 async function delB(id){if(!confirm('¿Eliminar esta cuenta?'))return;await sb.from('bancos').delete().eq('id',id);DATA.bancos=DATA.bancos.filter(function(x){return x.id!==id;});renderAll();}
 
 async function addI(){
+  if(!userId){alert('Sesion expirada. Recarga la pagina.');return;}
   var nombre=document.getElementById('i-nom').value.trim(),monto=parseFloat(document.getElementById('i-mon').value),dia=parseInt(document.getElementById('i-dia').value),tipo=document.getElementById('i-tip').value;
-  if(!nombre||isNaN(monto)||isNaN(dia))return;
-  var{data}=await sb.from('ingresos').insert([{user_id:userId,nombre,monto,dia,tipo}]).select();
-  if(data)DATA.ingresos.push(data[0]);
+  if(!nombre||isNaN(monto)||isNaN(dia)){alert('Completa todos los campos: nombre, monto y dia.');return;}
+  var{data,error}=await sb.from('ingresos').insert([{user_id:userId,nombre,monto,dia,tipo}]).select();
+  if(error){alert('Error: '+error.message);return;}
+  if(data&&data[0])DATA.ingresos.push(data[0]);
   document.getElementById('i-nom').value='';document.getElementById('i-mon').value='';document.getElementById('i-dia').value='';
   renderAll();
 }
