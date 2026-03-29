@@ -5,13 +5,14 @@
   fix loadAll async/try-catch, fix onclick sin JSON en HTML strings.
 -->
 <!DOCTYPE html>
-<html lang="es" data-version="3.4">
+<html lang="es" data-version="3.5">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>misfinanzas</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
@@ -366,7 +367,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div id="page-home" class="page active">
     <div class="home-greeting">
       <div class="hg-sub" id="hg-sub">Buenos días</div>
-      <div class="hg-title" id="hg-title">Abril 2026</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <button onclick="navMes(-1)" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);padding:4px 8px;">‹</button>
+        <div class="hg-title" id="hg-title" style="margin-bottom:0;flex:1;">Abril 2026</div>
+        <button onclick="navMes(1)" id="btn-mes-next" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);padding:4px 8px;">›</button>
+      </div>
     </div>
     <div class="page-body">
       <!-- Balance -->
@@ -436,6 +441,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         </div>
       </div>
 
+      <!-- Bloque: Por Pagar -->
+      <div class="sec-block" id="blk-pagar">
+        <div class="sec-block-hdr" onclick="toggleBlock('blk-pagar')">
+          <div class="sec-block-title">📄 Por Pagar</div>
+          <div class="sec-block-right">
+            <div class="sec-block-badge" id="h-pagar-total" style="color:var(--red);">$0</div>
+            <div class="sec-block-arrow" id="arr-blk-pagar">▶</div>
+          </div>
+        </div>
+        <div class="sec-block-body" id="body-blk-pagar">
+          <div id="h-pagar-content"></div>
+        </div>
+      </div>
+
       <!-- Bloque: Alertas (al final) -->
       <div class="sec-block" id="blk-alertas">
         <div class="sec-block-hdr" onclick="toggleBlock('blk-alertas')">
@@ -454,7 +473,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
   <!-- MOVIMIENTOS -->
   <div id="page-movimientos" class="page">
-    <div class="page-title">Movimientos</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px 4px;">
+      <div style="font-size:20px;font-weight:600;letter-spacing:-.5px;">Movimientos</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="importarFacturillo()" style="font-size:11px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;font-family:var(--font);">📥 Importar</button>
+        <button onclick="exportarExcel()" style="font-size:11px;padding:6px 12px;border-radius:8px;border:1px solid var(--green-border);background:var(--green-bg);color:var(--green);cursor:pointer;font-family:var(--font);">📤 Excel</button>
+      </div>
+    </div>
+    <input type="file" id="import-file" accept=".xlsx" style="display:none;" onchange="procesarImportacion(this)"/>
 
     <!-- Barra resumen del mes -->
     <div id="mov-resumen-bar" style="margin:0 18px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;"></div>
@@ -468,11 +494,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
     <!-- PLANIFICADOS -->
     <div id="stab-planificados" class="sub-pane active">
-      <!-- Filtro banco -->
-      <div style="padding:0 18px 10px;display:flex;gap:8px;align-items:center;">
-        <span style="font-size:11px;color:var(--muted);font-weight:500;">Banco:</span>
-        <select id="plan-banco-filter" onchange="renderMovimientos()" style="font-size:12px;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-family:var(--font);">
-          <option value="">Todos</option>
+      <!-- Filtros planificados -->
+      <div style="padding:0 18px 10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <select id="plan-tipo-filter" onchange="renderMovimientos()" style="font-size:12px;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-family:var(--font);">
+          <option value="">Todos los tipos</option>
+          <option value="ingreso">Solo ingresos</option>
+          <option value="egreso">Solo egresos</option>
+        </select>
+        <select id="plan-orden-filter" onchange="renderMovimientos()" style="font-size:12px;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-family:var(--font);">
+          <option value="fecha">Ordenar por fecha</option>
+          <option value="monto-desc">Mayor monto primero</option>
+          <option value="monto-asc">Menor monto primero</option>
+          <option value="nombre">Por nombre</option>
         </select>
       </div>
       <div id="mov-planificados"></div>
@@ -692,7 +725,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div class="sec-block-body" id="body-form-banco">
           <div class="form-section">
             <div class="form-grid">
-              <div class="form-field"><label>Banco</label><select id="b-banco"><option>Banesco</option><option>Metro Bank</option><option>Banistmo</option><option>Banco General</option><option>BAC</option><option>Global Bank</option><option>Otro</option></select></div>
+              <div class="form-field"><label>Banco</label><select id="b-banco"><option>Banesco</option><option>Metro Bank</option><option>Banistmo</option><option>Banco General</option><option>BAC</option><option>Global Bank</option><option>Multibank</option><option>Caja de Ahorros</option><option>Scotia Bank</option><option>Otro</option></select></div>
               <div class="form-field"><label>Tipo</label><select id="b-tipo"><option value="corriente">Corriente</option><option value="ahorro">Ahorro</option></select></div>
               <div class="form-field"><label>Alias</label><input type="text" id="b-nom" placeholder="Ej: Cuenta nómina"/></div>
               <div class="form-field"><label>Saldo $</label><input type="number" id="b-sal" step="0.01"/></div>
@@ -794,6 +827,8 @@ var modalType='gasto';
 var MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 var MESES_C=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 var D={bancos:[],ingresos:[],cxc:[],cxp:[],prestamos:[],hipotecas:[],tarjetas:[],servicios:[],seguros:[],movimientos:[],gastos:[],bolsillos:[],partidas:[]};
+var VIEW_MES=HOY.getMonth();
+var VIEW_ANIO=HOY.getFullYear();
 
 // ============================================================
 // UTILS
@@ -953,11 +988,26 @@ async function startApp(user){
   renderAll();
 }
 
+function navMes(delta){
+  VIEW_MES+=delta;
+  if(VIEW_MES>11){VIEW_MES=0;VIEW_ANIO++;}
+  if(VIEW_MES<0){VIEW_MES=11;VIEW_ANIO--;}
+  // Deshabilitar el botón siguiente si es el mes actual
+  var btnNext=document.getElementById('btn-mes-next');
+  if(btnNext){btnNext.style.opacity=(VIEW_MES===HOY.getMonth()&&VIEW_ANIO===HOY.getFullYear())?'0.3':'1';}
+  updateGreeting();
+  renderHome();
+  renderMovimientos();
+}
 function updateGreeting(){
   var h=HOY.getHours();
   var g=h<12?'Buenos días ☀️':h<18?'Buenas tardes 👋':'Buenas noches 🌙';
   set('hg-sub',g+', '+userName);
-  set('hg-title',MESES[HOY.getMonth()].charAt(0).toUpperCase()+MESES[HOY.getMonth()].slice(1)+' '+HOY.getFullYear());
+  var mesLabel=MESES[VIEW_MES].charAt(0).toUpperCase()+MESES[VIEW_MES].slice(1)+' '+VIEW_ANIO;
+  var esMesActual=(VIEW_MES===HOY.getMonth()&&VIEW_ANIO===HOY.getFullYear());
+  set('hg-title',mesLabel+(esMesActual?' <span style="font-size:12px;color:var(--green);font-weight:500;"> • Este mes</span>':''));
+  var btnNext=document.getElementById('btn-mes-next');
+  if(btnNext)btnNext.style.opacity=esMesActual?'0.3':'1';
 }
 
 // ============================================================
@@ -1273,6 +1323,22 @@ function renderHome(){
     set('h-bolsillos-content',bh);
   }
 
+  // Por Pagar en home
+  var cxpPendH=D.cxp.filter(function(x){return !x.pagado;});
+  var cxpTotalH=cxpPendH.reduce(function(s,x){return s+parseFloat(x.monto||0);},0);
+  set('h-pagar-total',fmtK(cxpTotalH));
+  if(!cxpPendH.length){
+    set('h-pagar-content','<div class="empty">Sin cuentas por pagar.</div>');
+  } else {
+    var phH=cxpPendH.map(function(x){
+      var venc=isCxPVenc(x);
+      var ctxObj={id:x.id,tipo:'pago',nombre:x.proveedor,monto:x.monto,origen:'cxp',pagado:false};
+      var cid=mkCtx(ctxObj);
+      return '<div class="comp-row'+(venc?' urgente':'')+'"><div class="comp-check" onclick="matFromCtx('+cid+')"></div><div class="comp-icon" style="background:var(--surface2);">📄</div><div class="comp-info"><div class="comp-name">'+x.proveedor+'</div><div class="comp-meta"><span class="badge gray">'+x.categoria+'</span>'+(venc?'<span class="badge red">Vencida</span>':x.fecha?'<span class="badge amber">'+x.fecha+'</span>':'')+'</div></div><div class="comp-amt neg">'+fmt(x.monto)+'</div></div>';
+    }).join('');
+    set('h-pagar-content',phH);
+  }
+
   // Alertas (al final)
   var alerts=[];
   D.tarjetas.forEach(function(t){
@@ -1320,18 +1386,11 @@ function calcUrgencia(fecha){
 function renderMovimientos(){
   CTX_ARR=[]; // limpiar contextos al re-render
   // ── Actualizar filtro de bancos ──
-  var bf=document.getElementById('plan-banco-filter');
-  if(bf){
-    var curVal=bf.value;
-    bf.innerHTML='<option value="">Todos los bancos</option>';
-    D.bancos.forEach(function(b){bf.innerHTML+='<option value="'+b.id+'">'+b.banco+' — '+b.nombre+'</option>';});
-    bf.value=curVal;
-  }
-  var bancoFiltro=bf?parseInt(bf.value)||null:null;
+  // (filtros manejados por selects)
 
   // ── PLANIFICADOS: compromisos pendientes del mes ──
   var planificados=[];
-  var mesActual=HOY.getMonth(), anioActual=HOY.getFullYear();
+  var mesActual=VIEW_MES, anioActual=VIEW_ANIO;
 
   // Ingresos recurrentes no recibidos
   D.ingresos.forEach(function(x){
@@ -1412,13 +1471,21 @@ function renderMovimientos(){
     });
   });
 
-  // Aplicar filtro de banco (solo aplica a planificados que tienen banco_id)
-  var planFiltrados=bancoFiltro
-    ?planificados.filter(function(p){return !p.banco_id||p.banco_id===bancoFiltro;})
-    :planificados;
+  // Aplicar filtros
+  var tipoFiltro=(document.getElementById('plan-tipo-filter')||{value:''}).value;
+  var ordenFiltro=(document.getElementById('plan-orden-filter')||{value:'fecha'}).value;
+  var planFiltrados=planificados.filter(function(p){
+    if(tipoFiltro==='ingreso'&&p.tipo!=='ingreso')return false;
+    if(tipoFiltro==='egreso'&&p.tipo!=='egreso')return false;
+    return true;
+  });
 
-  // Ordenar: vencidos primero, luego por fecha
+  // Ordenar
   planFiltrados.sort(function(a,b){
+    if(ordenFiltro==='monto-desc')return b.monto-a.monto;
+    if(ordenFiltro==='monto-asc')return a.monto-b.monto;
+    if(ordenFiltro==='nombre')return(a.nombre||'').localeCompare(b.nombre||'');
+    // Por fecha (default): vencidos primero
     if(a.vencida&&!b.vencida)return -1;
     if(!a.vencida&&b.vencida)return 1;
     if(!a.fecha&&!b.fecha)return 0;
@@ -1432,11 +1499,17 @@ function renderMovimientos(){
   var planEgT=planificados.filter(function(p){return p.tipo==='egreso';}).reduce(function(s,p){return s+parseFloat(p.monto||0);},0);
 
   // ── EJECUTADOS: movimientos + gastos legacy ──
-  var gastosLegacy=D.gastos.filter(function(g){return parseFloat(g.monto||0)>0;}).map(function(g){
+  // Filtrar por mes seleccionado
+  function enMesVista(f){
+    if(!f)return false;
+    var d=new Date((f+'').split('T')[0]+'T00:00:00');
+    return d.getMonth()===VIEW_MES&&d.getFullYear()===VIEW_ANIO;
+  }
+  var gastosLegacy=D.gastos.filter(function(g){return parseFloat(g.monto||0)>0&&enMesVista(g.fecha||g.created_at);}).map(function(g){
     return {id:'g'+g.id,tipo:'egreso',descripcion:g.desc_gasto||'Gasto',monto:g.monto,
       fecha:g.fecha,banco_id:null,bolsillo_id:g.bolsillo_id,created_at:g.created_at,origen:'legacy'};
   });
-  var ejecutados=D.movimientos.map(function(m){
+  var ejecutados=D.movimientos.filter(function(m){return enMesVista(m.fecha||m.created_at);}).map(function(m){
     return {id:m.id,tipo:m.tipo==='ingreso'?'ingreso':'egreso',descripcion:m.descripcion,
       monto:m.monto,fecha:m.fecha,banco_id:m.banco_id,bolsillo_id:m.bolsillo_id,
       created_at:m.created_at,origen:m.origen};
@@ -1455,7 +1528,7 @@ function renderMovimientos(){
   var pctEj=totalPlan>0?Math.min(100,Math.round(totalEj/(totalPlan+totalEj)*100)):0;
   set('mov-resumen-bar',
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'+
-      '<div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Resumen '+MESES[HOY.getMonth()]+'</div>'+
+      '<div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Resumen '+MESES[VIEW_MES].toUpperCase()+' '+VIEW_ANIO+'</div>'+
       '<div style="font-size:11px;color:var(--muted);">'+planificados.length+' planificados · '+ejecutados.length+' ejecutados</div>'+
     '</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">'+
@@ -1757,7 +1830,7 @@ function renderEstados(){
 
   // Cuentas
   var bH=D.bancos.map(function(b){
-    return '<div class="item-row"><div class="item-icon" style="background:var(--blue-bg);">🏦</div><div class="item-info"><div class="item-name">'+b.banco+' — '+b.nombre+'</div><div class="item-meta"><span class="badge gray">'+b.tipo+'</span>'+(b.upd?'<span class="badge gray">'+b.upd+'</span>':'')+'</div></div><div class="item-right"><div class="item-amt pos">'+fmt(b.saldo)+'</div></div><div class="item-actions"><button class="btn-sm green" onclick="editSaldo('+b.id+')">Actualizar</button><button class="btn-sm red" onclick="delB('+b.id+')">×</button></div></div>';
+    return '<div class="item-row"><div class="item-icon" style="background:var(--blue-bg);">🏦</div><div class="item-info"><div class="item-name">'+b.banco+' — '+b.nombre+'</div><div class="item-meta"><span class="badge gray">'+b.tipo+'</span>'+(b.upd?'<span class="badge gray">'+b.upd+'</span>':'')+'</div></div><div class="item-right"><div class="item-amt pos">'+fmt(b.saldo)+'</div></div><div class="item-actions"><button class="btn-sm green" onclick="editSaldo('+b.id+')">Saldo</button><button class="btn-sm" onclick="editBanco('+b.id+')" style="border-color:var(--blue-border);color:var(--blue);">Alias</button><button class="btn-sm red" onclick="delB('+b.id+')">×</button></div></div>';
   }).join('');
   set('bancos-list','<div class="sec-block" style="margin:0;border-radius:0;border-left:none;border-right:none;border-bottom:none;">'+(bH||'<div class="empty">Sin cuentas.</div>')+'</div>');
 
@@ -1780,9 +1853,18 @@ async function addB(){
 }
 async function editSaldo(id){
   var b=D.bancos.find(function(x){return x.id===id;});if(!b)return;
-  var val=prompt('Saldo actual de '+b.banco+' en $:',b.saldo);if(val===null)return;
+  var val=prompt('Saldo actual de '+b.banco+' — '+b.nombre+' ($):',b.saldo);if(val===null)return;
   var saldo=parseFloat(val)||0,upd=HOY.toLocaleDateString('es-PA');
   var{data,error}=await sb.from('bancos').update({saldo,upd}).eq('id',id).eq('user_id',uid).select();
+  if(error){err(error.message);return;}
+  if(data&&data[0]){var i=D.bancos.findIndex(function(x){return x.id===id;});if(i>=0)D.bancos[i]=data[0];}
+  refreshSelects();renderAll();
+}
+async function editBanco(id){
+  var b=D.bancos.find(function(x){return x.id===id;});if(!b)return;
+  var alias=prompt('Alias de la cuenta:',b.nombre);if(alias===null)return;
+  if(!alias.trim()){alert('El alias no puede estar vacío.');return;}
+  var{data,error}=await sb.from('bancos').update({nombre:alias.trim()}).eq('id',id).eq('user_id',uid).select();
   if(error){err(error.message);return;}
   if(data&&data[0]){var i=D.bancos.findIndex(function(x){return x.id===id;});if(i>=0)D.bancos[i]=data[0];}
   refreshSelects();renderAll();
@@ -1927,6 +2009,141 @@ async function addPart(bolId){
   setTimeout(function(){var el=document.getElementById('bol-b-'+bolId);if(el)el.classList.add('open');},150);
 }
 async function delPart(id){await sb.from('partidas').delete().eq('id',id).eq('user_id',uid);D.partidas=D.partidas.filter(function(x){return x.id!==id;});renderAll();}
+
+// ============================================================
+// EXPORTAR A EXCEL (CSV descargable)
+// ============================================================
+function exportarExcel(){
+  var movs=[];
+  // Gastos legacy
+  D.gastos.filter(function(g){return parseFloat(g.monto||0)>0;}).forEach(function(g){
+    var bol=D.bolsillos.find(function(b){return b.id==g.bolsillo_id;});
+    movs.push({fecha:g.fecha||g.created_at.split('T')[0],tipo:'Gasto',descripcion:g.desc_gasto,monto:g.monto,banco:'',bolsillo:bol?bol.nombre:'',origen:'Manual'});
+  });
+  // Movimientos nuevos
+  D.movimientos.forEach(function(m){
+    var bol=D.bolsillos.find(function(b){return b.id==m.bolsillo_id;});
+    var banco=D.bancos.find(function(b){return b.id==m.banco_id;});
+    movs.push({fecha:m.fecha,tipo:m.tipo==='ingreso'?'Ingreso':'Gasto',descripcion:m.descripcion,monto:m.monto,banco:banco?banco.banco+' — '+banco.nombre:'',bolsillo:bol?bol.nombre:'',origen:m.origen||'Manual'});
+  });
+  movs.sort(function(a,b){return new Date(b.fecha)-new Date(a.fecha);});
+  
+  var csv='Fecha,Tipo,Descripción,Monto,Banco,Bolsillo,Origen
+';
+  movs.forEach(function(m){
+    csv+='"'+(m.fecha||'')+'",'
+      +'"'+(m.tipo||'')+'",'
+      +'"'+(m.descripcion||'').replace(/"/g,"''")+'",'
+      +(parseFloat(m.monto||0).toFixed(2))+','
+      +'"'+(m.banco||'')+'",'
+      +'"'+(m.bolsillo||'')+'",'
+      +'"'+(m.origen||'')+'"\n';
+  });
+  
+  var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download='misfinanzas_movimientos_'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();URL.revokeObjectURL(url);
+}
+
+// ============================================================
+// IMPORTAR DESDE FACTURILLO
+// ============================================================
+function importarFacturillo(){
+  document.getElementById('import-file').click();
+}
+
+async function procesarImportacion(input){
+  var file=input.files[0];if(!file){return;}
+  var reader=new FileReader();
+  reader.onload=async function(e){
+    try{
+      var data=new Uint8Array(e.target.result);
+      var wb=XLSX.read(data,{type:'array'});
+      // Buscar hoja Resumen (Facturillo) o primera hoja
+      var sheetName=wb.SheetNames.includes('Resumen')?'Resumen':wb.SheetNames[0];
+      var ws=wb.Sheets[sheetName];
+      var rows=XLSX.utils.sheet_to_json(ws,{defval:null});
+      
+      // Detectar columnas de Facturillo
+      var facturas=[];
+      var CAT_MAP={'Supermercados':'Vida Diaria','Restaurantes y Cafeterías':'Vida Diaria',
+        'Combustible y Talleres':'Transporte','Ropa y Moda':'Personal','Salud y Farmacia':'Salud',
+        'Salud y Bienestar':'Salud','Electrónica y Tecnología':'Tecnología',
+        'Muebles y Decoración':'Hogar','Educación':'Educación'};
+      
+      rows.forEach(function(r){
+        var fecha=r['Fecha y Hora']||r['Fecha'];
+        var tienda=r['Tienda']||r['Comercio']||r['Descripción'];
+        var monto=parseFloat(r['Valor Total']||r['Monto']||0);
+        var cat=r['Categoría']||r['Categoría Tienda']||'';
+        
+        if(!fecha||!monto||monto<=0)return;
+        
+        // Convertir fecha Excel a string
+        var fechaStr;
+        if(typeof fecha==='number'){
+          // Número de serie de Excel
+          var d=new Date((fecha-25569)*86400*1000);
+          fechaStr=d.toISOString().split('T')[0];
+        } else if(fecha instanceof Date){
+          fechaStr=fecha.toISOString().split('T')[0];
+        } else {
+          fechaStr=String(fecha).split('T')[0].split(' ')[0];
+        }
+        
+        facturas.push({
+          desc_gasto:tienda||'Factura importada',
+          monto:monto,
+          fecha:fechaStr,
+          etiqueta:CAT_MAP[cat]||cat||'Importado',
+          bolsillo_id:null,partida_id:null
+        });
+      });
+      
+      if(!facturas.length){
+        alert('No se encontraron facturas válidas en el archivo.');
+        input.value='';return;
+      }
+      
+      var confirmar=confirm('Se encontraron '+facturas.length+' facturas por un total de $'+
+        facturas.reduce(function(s,f){return s+f.monto;},0).toFixed(2)+
+        '
+
+¿Importar como gastos?');
+      if(!confirmar){input.value='';return;}
+      
+      // Insertar en Supabase
+      var inserted=0,errors=0;
+      for(var i=0;i<facturas.length;i++){
+        var f=facturas[i];
+        var{error}=await sb.from('gastos').insert([{
+          user_id:uid,desc_gasto:f.desc_gasto,monto:f.monto,
+          fecha:f.fecha,etiqueta:f.etiqueta
+        }]);
+        if(error)errors++;else inserted++;
+      }
+      
+      alert('✅ Importación completada:
+'+inserted+' facturas importadas'+
+        (errors?'
+⚠️ '+errors+' errores':'')+
+        '
+
+Podés verlas en Movimientos → Egresos');
+      
+      // Recargar datos
+      await loadAll();
+      renderAll();
+      input.value='';
+    }catch(ex){
+      err('Error al procesar el archivo: '+ex.message);
+      input.value='';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
 
 // ============================================================
 // ARRANQUE
