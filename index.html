@@ -1606,15 +1606,15 @@ function renderCompromisos(){
     pagarH+='<div style="padding:10px 16px 4px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Compromisos fijos</div>';
     D.prestamos.forEach(function(x){
       // ctx inline
-      pagarH+='<div class="comp-row'+(x.pagado_mes?' done-row':'')+'">'+mkCheck(x.pagado_mes,ctx)+'<div class="comp-icon" style="background:var(--surface2);">🏦</div><div class="comp-info"><div class="comp-name">'+x.nombre+'</div><div class="comp-meta"><span class="badge gray">Día '+x.dia+'</span><span class="badge gray">Cuota</span></div></div><div class="comp-amt">'+fmt(x.cuota)+'</div></div>';
+      pagarH+='<div class="comp-row'+(x.pagado_mes?' done-row':'')+'">'+mkCheck(x.pagado_mes,{id:x.id,tipo:'pago',nombre:x.nombre,monto:x.cuota,origen:'prestamo',pagado:false})+'<div class="comp-icon" style="background:var(--surface2);">🏦</div><div class="comp-info"><div class="comp-name">'+x.nombre+'</div><div class="comp-meta"><span class="badge gray">Día '+x.dia+'</span><span class="badge gray">Cuota</span></div></div><div class="comp-amt">'+fmt(x.cuota)+'</div></div>';
     });
     D.hipotecas.forEach(function(x){
       // ctx inline
-      pagarH+='<div class="comp-row'+(x.pagado_mes?' done-row':'')+'">'+mkCheck(x.pagado_mes,ctx)+'<div class="comp-icon" style="background:var(--surface2);">🏠</div><div class="comp-info"><div class="comp-name">'+x.nombre+'</div><div class="comp-meta"><span class="badge gray">Día '+x.dia+'</span></div></div><div class="comp-amt">'+fmt(x.cuota)+'</div></div>';
+      pagarH+='<div class="comp-row'+(x.pagado_mes?' done-row':'')+'">'+mkCheck(x.pagado_mes,{id:x.id,tipo:'pago',nombre:x.nombre,monto:x.cuota,origen:'hipoteca',pagado:false})+'<div class="comp-icon" style="background:var(--surface2);">🏠</div><div class="comp-info"><div class="comp-name">'+x.nombre+'</div><div class="comp-meta"><span class="badge gray">Día '+x.dia+'</span></div></div><div class="comp-amt">'+fmt(x.cuota)+'</div></div>';
     });
     D.tarjetas.forEach(function(x){
       // ctx inline
-      pagarH+='<div class="comp-row'+(x.pagado_mes?' done-row':'')+'">'+mkCheck(x.pagado_mes,ctx)+'<div class="comp-icon" style="background:var(--blue-bg);">💳</div><div class="comp-info"><div class="comp-name">'+x.nombre+'</div><div class="comp-meta"><span class="badge gray">Corte día '+x.dia+'</span></div></div><div class="comp-amt">'+fmt(x.pago)+'</div></div>';
+      pagarH+='<div class="comp-row'+(x.pagado_mes?' done-row':'')+'">'+mkCheck(x.pagado_mes,{id:x.id,tipo:'pago',nombre:x.nombre,monto:x.pago,origen:'tarjeta',pagado:false})+'<div class="comp-icon" style="background:var(--blue-bg);">💳</div><div class="comp-info"><div class="comp-name">'+x.nombre+'</div><div class="comp-meta"><span class="badge gray">Corte día '+x.dia+'</span></div></div><div class="comp-amt">'+fmt(x.pago)+'</div></div>';
     });
   }
   var cxpPend=D.cxp.filter(function(x){return !x.pagado;});
@@ -1623,7 +1623,7 @@ function renderCompromisos(){
     cxpPend.forEach(function(x){
       var venc=isCxPVenc(x);
       // ctx inline
-      pagarH+='<div class="comp-row'+(venc?' urgente':'')+'">'+mkCheck(false,ctx)+'<div class="comp-icon" style="background:var(--surface2);">📄</div><div class="comp-info"><div class="comp-name">'+x.proveedor+'</div><div class="comp-meta"><span class="badge gray">'+x.categoria+'</span>'+(venc?'<span class="badge red">Vencida</span>':x.fecha?'<span class="badge gray">'+x.fecha+'</span>':'')+'</div></div><div class="comp-amt">'+fmt(x.monto)+'</div><div class="item-actions"><button class="btn-sm red" onclick="delCxP('+x.id+')">×</button></div></div>';
+      pagarH+='<div class="comp-row'+(venc?' urgente':'')+'">'+mkCheck(false,{id:x.id,tipo:'pago',nombre:x.proveedor,monto:x.monto,origen:'cxp',pagado:false})+'<div class="comp-icon" style="background:var(--surface2);">📄</div><div class="comp-info"><div class="comp-name">'+x.proveedor+'</div><div class="comp-meta"><span class="badge gray">'+x.categoria+'</span>'+(venc?'<span class="badge red">Vencida</span>':x.fecha?'<span class="badge gray">'+x.fecha+'</span>':'')+'</div></div><div class="comp-amt">'+fmt(x.monto)+'</div><div class="item-actions"><button class="btn-sm red" onclick="delCxP('+x.id+')">×</button></div></div>';
     });
   }
   if(!pagarH)pagarH='<div class="empty"><div class="empty-icon">✅</div>Sin compromisos por pagar.</div>';
@@ -1635,7 +1635,7 @@ function renderCompromisos(){
     cobrarH+='<div style="padding:10px 16px 4px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Ingresos del mes</div>';
     D.ingresos.forEach(function(x){
       // ctx inline
-      cobrarH+='<div class="comp-row'+(x.recibido_mes?' done-row':'')+'">'+mkCheck(x.recibido_mes,ctx)+'<div class="comp-icon" style="background:var(--green-bg);">💵</div><div class="comp-info"><div class="comp-name">'+x.nombre+'</div><div class="comp-meta"><span class="badge gray">Día '+x.dia+'</span><span class="badge gray">'+x.tipo+'</span></div></div><div class="comp-amt pos">'+fmt(x.monto)+'</div></div>';
+      cobrarH+='<div class="comp-row'+(x.recibido_mes?' done-row':'')+'">'+mkCheck(x.recibido_mes,{id:x.id,tipo:'ingreso',nombre:x.nombre,monto:x.monto,origen:'ingreso',pagado:false})+'<div class="comp-icon" style="background:var(--green-bg);">💵</div><div class="comp-info"><div class="comp-name">'+x.nombre+'</div><div class="comp-meta"><span class="badge gray">Día '+x.dia+'</span><span class="badge gray">'+x.tipo+'</span></div></div><div class="comp-amt pos">'+fmt(x.monto)+'</div></div>';
     });
   }
   var cxcPend=D.cxc.filter(function(x){return !x.cobrado;});
@@ -1644,7 +1644,7 @@ function renderCompromisos(){
     cxcPend.forEach(function(x){
       var venc=isVenc(x);
       // ctx inline
-      cobrarH+='<div class="comp-row'+(venc?' urgente':'')+'">'+mkCheck(false,ctx)+'<div class="comp-icon" style="background:var(--blue-bg);">💰</div><div class="comp-info"><div class="comp-name">'+x.cliente+'</div><div class="comp-meta">'+(x.fecha||'Sin fecha')+(venc?'<span class="badge red">Vencida</span>':'')+'</div></div><div class="comp-amt pos">'+fmt(x.monto)+'</div><div class="item-actions"><button class="btn-sm red" onclick="delCxC('+x.id+')">×</button></div></div>';
+      cobrarH+='<div class="comp-row'+(venc?' urgente':'')+'">'+mkCheck(false,{id:x.id,tipo:'ingreso',nombre:x.cliente,monto:x.monto,origen:'cxc',pagado:false})+'<div class="comp-icon" style="background:var(--blue-bg);">💰</div><div class="comp-info"><div class="comp-name">'+x.cliente+'</div><div class="comp-meta">'+(x.fecha||'Sin fecha')+(venc?'<span class="badge red">Vencida</span>':'')+'</div></div><div class="comp-amt pos">'+fmt(x.monto)+'</div><div class="item-actions"><button class="btn-sm red" onclick="delCxC('+x.id+')">×</button></div></div>';
     });
   }
   if(!cobrarH)cobrarH='<div class="empty"><div class="empty-icon">💰</div>Sin pendientes por cobrar.</div>';
