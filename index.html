@@ -371,7 +371,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 // ============================================================
 const SUPA_URL = 'https://gzskzbewfwcpzsinzqym.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6c2t6YmV3ZndjcHpzaW56cXltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDIzOTMsImV4cCI6MjA5MDMxODM5M30.zwSMHzyMQU-BqHvg5m4_qngdy2DQgELhZZ7pchIsn8o';
-const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY, {
+  auth: {
+    storage: window.localStorage,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    flowType: 'implicit'
+  }
+});
 
 // ============================================================
 // ESTADO GLOBAL
