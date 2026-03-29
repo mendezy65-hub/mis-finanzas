@@ -1309,6 +1309,15 @@ function matComp(c){
   openMat(c);
 }
 
+
+function calcUrgencia(fecha){
+  if(!fecha)return 'normal';
+  var dias=diasHasta(fecha.toISOString().split('T')[0]);
+  if(dias<=0)return 'hoy';
+  if(dias<=7)return 'pronto';
+  return 'normal';
+}
+
 function renderMovimientos(){
   // ── Actualizar filtro de bancos ──
   var bf=document.getElementById('plan-banco-filter');
@@ -1581,14 +1590,6 @@ function renderMovimientos(){
   renderEjList(ejecutados,'mov-ejecutados');
   renderEjList(ejecutados.filter(function(m){return m.tipo==='ingreso';}),'mov-solo-ingresos');
   renderEjList(ejecutados.filter(function(m){return m.tipo==='egreso';}),'mov-solo-egresos');
-}
-
-function calcUrgencia(fecha){
-  if(!fecha)return 'normal';
-  var dias=diasHasta(fecha.toISOString().split('T')[0]);
-  if(dias<=0)return 'hoy';
-  if(dias<=7)return 'pronto';
-  return 'normal';
 }
 
 
@@ -1930,7 +1931,27 @@ async function delPart(id){await sb.from('partidas').delete().eq('id',id).eq('us
 // ============================================================
 // ARRANQUE
 // ============================================================
-setTimeout(function(){var l=document.getElementById('loading');if(l&&l.style.display!=='none'){l.style.display='none';document.getElementById('auth-screen').style.display='flex';}},8000);
+// Timeout de seguridad - si algo falla, mostrar login
+setTimeout(function(){
+  try{
+    var l=document.getElementById('loading');
+    if(l&&l.style.display!=='none'){
+      l.style.display='none';
+      document.getElementById('auth-screen').style.display='flex';
+    }
+  }catch(e){}
+},6000);
+
+// Error handler global para detectar crashes
+window.onerror=function(msg,src,line,col,err){
+  console.error('JS Error:',msg,'L'+line);
+  var l=document.getElementById('loading');
+  if(l&&l.style.display!=='none'){
+    l.style.display='none';
+    document.getElementById('auth-screen').style.display='flex';
+  }
+  return false;
+};
 initSession();
 </script>
 </body>
