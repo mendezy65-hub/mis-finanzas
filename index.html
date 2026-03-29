@@ -1574,12 +1574,12 @@ function renderMovimientos(){
             '<div class="mov-name">'+(m.descripcion||m.desc_gasto||'Movimiento')+'</div>'+
             '<div class="mov-meta">'+
               '<span class="badge '+(isIng?'green':'gray')+'">'+(isIng?'Ingreso':'Gasto')+'</span>'+
-              (bol?'<span class="badge blue">'+bol.nombre+'</span>':'')+''+
-              (banco?'<span class="badge gray">🏦 '+banco.banco+'</span>':'')+''+
+              (bol?'<span class="badge blue">'+bol.nombre+'</span>':'')+
+              (banco?'<span class="badge gray">🏦 '+banco.banco+'</span>':'')+
             '</div>'+
           '</div>'+
           '<div class="mov-amt '+(isIng?'pos':'neg')+'">'+(isIng?'+':'-')+fmt(m.monto)+'</div>'+
-          '<button class="mov-del" onclick="delMov(''+m.id+'')">×</button>'+
+          '<button class="mov-del" onclick="delMov('+m.id+')">×</button>'+
         '</div>';
       });
     });
