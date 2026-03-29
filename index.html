@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-version="3.1">
+<html lang="es" data-version="3.2">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -858,8 +858,11 @@ function updateGreeting(){
 // ============================================================
 async function loadAll(){
   var tables=['bancos','ingresos','cxc','cxp','prestamos','hipotecas','tarjetas','servicios','seguros','gastos','bolsillos','partidas','fondos'];
-  var results=await Promise.all(tables.map(function(t){
-    return sb.from(t).select('*').eq('user_id',uid).order('created_at',{ascending:true}).catch(function(){return{data:[],error:null};});
+  var results=await Promise.all(tables.map(async function(t){
+    try{
+      var r=await sb.from(t).select('*').eq('user_id',uid).order('created_at',{ascending:true});
+      return r;
+    }catch(e){return{data:[],error:e};}
   }));
   tables.forEach(function(t,i){if(results[i]&&!results[i].error&&results[i].data)D[t]=results[i].data;});
   refreshSelects();
