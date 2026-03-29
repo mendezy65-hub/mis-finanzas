@@ -5,7 +5,7 @@
   fix loadAll async/try-catch, fix onclick sin JSON en HTML strings.
 -->
 <!DOCTYPE html>
-<html lang="es" data-version="3.5">
+<html lang="es" data-version="3.7">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -32,6 +32,57 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 #loading{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:14px;}
 .load-logo{font-size:22px;font-weight:600;letter-spacing:-.5px;color:var(--text);}
 .load-logo span{color:var(--green);}
+
+/* ── TOOLTIPS ── */
+.tip-btn{background:none;border:1px solid var(--border);border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;color:var(--muted);display:inline-flex;align-items:center;justify-content:center;margin-left:5px;vertical-align:middle;flex-shrink:0;}
+.tip-btn:hover{background:var(--surface2);color:var(--text);}
+.tip-popup{position:fixed;z-index:800;background:var(--text);color:var(--bg);border-radius:12px;padding:12px 15px;max-width:280px;font-size:12px;line-height:1.5;box-shadow:0 8px 24px rgba(0,0,0,.25);display:none;}
+.tip-popup.visible{display:block;}
+.tip-popup-title{font-weight:700;margin-bottom:5px;font-size:13px;}
+.tip-close{position:absolute;top:8px;right:10px;background:none;border:none;color:rgba(255,255,255,.6);cursor:pointer;font-size:16px;}
+
+/* ── TOUR ── */
+#tour-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:900;display:none;align-items:flex-end;justify-content:center;}
+#tour-overlay.active{display:flex;}
+.tour-card{background:var(--surface);border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:430px;border-top:3px solid var(--green);}
+.tour-step-num{font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+.tour-title{font-size:18px;font-weight:700;margin-bottom:8px;letter-spacing:-.3px;}
+.tour-desc{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:20px;}
+.tour-dots{display:flex;gap:6px;justify-content:center;margin-bottom:16px;}
+.tour-dot{width:7px;height:7px;border-radius:50%;background:var(--border);}
+.tour-dot.active{background:var(--green);width:20px;border-radius:4px;}
+.tour-btns{display:flex;gap:10px;}
+.tour-btn-skip{flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:14px;cursor:pointer;font-family:var(--font);}
+.tour-btn-next{flex:2;padding:12px;border-radius:10px;border:none;background:var(--green);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);}
+
+/* ── ASISTENTE IA ── */
+#ai-fab{position:fixed;bottom:90px;right:16px;width:48px;height:48px;border-radius:50%;background:var(--text);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;z-index:300;box-shadow:0 4px 16px rgba(0,0,0,.2);border:none;}
+#ai-panel{position:fixed;inset:0;background:var(--bg);z-index:700;display:none;flex-direction:column;}
+#ai-panel.open{display:flex;}
+.ai-header{display:flex;align-items:center;gap:12px;padding:16px 18px;background:var(--surface);border-bottom:1px solid var(--border);}
+.ai-back{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);}
+.ai-title{font-size:16px;font-weight:600;flex:1;}
+.ai-status{font-size:11px;color:var(--green);font-weight:500;}
+.ai-messages{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:12px;}
+.ai-msg{max-width:85%;padding:11px 14px;border-radius:14px;font-size:13px;line-height:1.5;}
+.ai-msg.user{background:var(--green);color:#fff;align-self:flex-end;border-radius:14px 14px 4px 14px;}
+.ai-msg.bot{background:var(--surface);border:1px solid var(--border);align-self:flex-start;border-radius:14px 14px 14px 4px;}
+.ai-msg.bot.loading{color:var(--muted);}
+.ai-suggestions{padding:8px 18px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;}
+.ai-suggestions::-webkit-scrollbar{display:none;}
+.ai-sug{white-space:nowrap;padding:7px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);font-size:12px;cursor:pointer;font-family:var(--font);color:var(--text);}
+.ai-input-row{display:flex;gap:8px;padding:12px 18px;background:var(--surface);border-top:1px solid var(--border);}
+.ai-input{flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:12px;font-size:14px;background:var(--bg);color:var(--text);font-family:var(--font);}
+.ai-input:focus{outline:none;border-color:var(--green);}
+.ai-send{padding:10px 16px;border-radius:12px;border:none;background:var(--green);color:#fff;font-size:16px;cursor:pointer;}
+
+/* ── FAQ ── */
+.faq-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden;}
+.faq-q{width:100%;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:transparent;border:none;cursor:pointer;font-family:var(--font);text-align:left;font-size:13px;font-weight:500;color:var(--text);}
+.faq-q:active{background:var(--surface2);}
+.faq-arrow{font-size:12px;color:var(--muted);transition:transform .2s;flex-shrink:0;}
+.faq-a{padding:0 16px 14px;font-size:13px;color:var(--muted);line-height:1.6;display:none;}
+.faq-a.open{display:block;}
 .load-dots{display:flex;gap:5px;}
 .load-dots div{width:7px;height:7px;border-radius:50%;background:var(--green);animation:ldot 1.2s ease-in-out infinite;}
 .load-dots div:nth-child(2){animation-delay:.2s;}
@@ -358,6 +409,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="app-header">
     <div class="hdr-logo">mis<span>finanzas</span></div>
     <div class="hdr-right">
+      <button onclick="goPage('faq')" style="background:none;border:1px solid var(--border);border-radius:50%;width:28px;height:28px;font-size:13px;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;" title="Ayuda">?</button>
       <div class="hdr-avatar" id="hdr-avatar">Y</div>
       <button class="hdr-salir" id="btn-salir">Salir</button>
     </div>
@@ -752,12 +804,171 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
   </div>
 
+  <!-- PLANIFICAR -->
+  <div id="page-planificar" class="page">
+    <div class="page-title">Planificar</div>
+
+    <!-- SCORE DE SALUD FINANCIERA -->
+    <div style="margin:0 18px 12px;">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;position:relative;overflow:hidden;">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">💚 Score de salud financiera</div>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div id="score-circle" style="width:72px;height:72px;border-radius:50%;border:5px solid var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <div style="text-align:center;">
+              <div id="score-valor" style="font-size:22px;font-weight:700;font-family:var(--mono);">--</div>
+            </div>
+          </div>
+          <div style="flex:1;">
+            <div id="score-label" style="font-size:15px;font-weight:600;margin-bottom:4px;">Calculando...</div>
+            <div id="score-detalle" style="font-size:12px;color:var(--muted);line-height:1.5;"></div>
+          </div>
+        </div>
+        <div style="margin-top:12px;" id="score-factores"></div>
+      </div>
+    </div>
+
+    <!-- SUB TABS -->
+    <div class="sub-tabs">
+      <button class="stab active" onclick="stab('plan-deudas',this)">Salir de deudas</button>
+      <button class="stab" onclick="stab('plan-simulador',this)">Simulador</button>
+      <button class="stab" onclick="stab('plan-ahorro',this)">Metas de ahorro</button>
+    </div>
+
+    <!-- PLAN SALIR DE DEUDAS -->
+    <div id="plan-deudas" class="sub-pane active">
+      <div style="padding:0 18px 12px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;">
+          <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Estrategia de pago</div>
+          <div style="display:flex;gap:6px;margin-bottom:12px;">
+            <button id="btn-avalanche" onclick="setEstrategia('avalanche')" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--green-border);background:var(--green-bg);color:var(--green);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">⚡ Avalanche</button>
+            <button id="btn-snowball" onclick="setEstrategia('snowball')" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">❄️ Snowball</button>
+          </div>
+          <div id="estrategia-desc" style="font-size:12px;color:var(--muted);line-height:1.5;padding:8px;background:var(--surface2);border-radius:8px;margin-bottom:10px;"></div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <label style="font-size:12px;color:var(--muted);font-weight:500;white-space:nowrap;">Pago extra/mes $</label>
+            <input type="number" id="pago-extra" value="0" min="0" step="50" oninput="renderPlanDeudas()" style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--surface);color:var(--text);font-family:var(--font);font-weight:600;">
+          </div>
+        </div>
+        <div id="plan-deudas-content"></div>
+      </div>
+    </div>
+
+    <!-- SIMULADOR -->
+    <div id="plan-simulador" class="sub-pane">
+      <div style="padding:0 18px 12px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;">
+          <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;">¿Cuánto pagar para liquidar en X meses?</div>
+          <div class="form-grid" style="gap:10px;">
+            <div class="form-field">
+              <label>Deuda a simular</label>
+              <select id="sim-deuda" onchange="renderSimulador()" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);font-family:var(--font);">
+                <option value="total">Todas las deudas</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Liquidar en (meses)</label>
+              <input type="number" id="sim-meses" value="24" min="1" max="360" oninput="renderSimulador()" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);font-family:var(--font);">
+            </div>
+          </div>
+          <button onclick="renderSimulador()" style="width:100%;padding:11px;border-radius:10px;border:none;background:var(--green);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);margin-top:10px;">Calcular →</button>
+        </div>
+        <div id="sim-resultado"></div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-top:10px;">
+          <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;">¿En cuántos meses liquido pagando $X?</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <label style="font-size:12px;color:var(--muted);font-weight:500;white-space:nowrap;">Pago mensual $</label>
+            <input type="number" id="sim-pago" placeholder="500" min="0" step="50" oninput="renderSimulador2()" style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--surface);color:var(--text);font-family:var(--font);">
+          </div>
+          <div id="sim-resultado2"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- METAS DE AHORRO -->
+    <div id="plan-ahorro" class="sub-pane">
+      <div style="padding:0 18px 12px;">
+        <div id="ahorro-lista"></div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;">
+          <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;">Nueva meta de ahorro</div>
+          <div class="form-grid">
+            <div class="form-field"><label>Nombre</label><input type="text" id="fon-nom" placeholder="Ej: Fondo emergencia"/></div>
+            <div class="form-field"><label>Meta $</label><input type="number" id="fon-met" placeholder="5000" step="100"/></div>
+            <div class="form-field"><label>Ahorrado $</label><input type="number" id="fon-act" placeholder="0" step="50"/></div>
+            <div class="form-field"><label>Aporte/mes $</label><input type="number" id="fon-apo" placeholder="200" step="50"/></div>
+          </div>
+          <button class="btn-add" onclick="addFon()" style="margin-top:10px;">+ Agregar meta</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLTIP POPUP -->
+  <div id="tip-popup" class="tip-popup">
+    <button class="tip-close" onclick="closeTip()">×</button>
+    <div class="tip-popup-title" id="tip-title"></div>
+    <div id="tip-body"></div>
+  </div>
+
+  <!-- TOUR OVERLAY -->
+  <div id="tour-overlay">
+    <div class="tour-card">
+      <div class="tour-step-num" id="tour-step-num">Paso 1 de 6</div>
+      <div class="tour-title" id="tour-title"></div>
+      <div class="tour-desc" id="tour-desc"></div>
+      <div class="tour-dots" id="tour-dots"></div>
+      <div class="tour-btns">
+        <button class="tour-btn-skip" onclick="endTour()">Omitir tour</button>
+        <button class="tour-btn-next" id="tour-btn-next" onclick="nextTourStep()">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ASISTENTE IA -->
+  <button id="ai-fab" onclick="openAI()" title="Asistente financiero">🤖</button>
+
+  <div id="ai-panel">
+    <div class="ai-header">
+      <button class="ai-back" onclick="closeAI()">←</button>
+      <div>
+        <div class="ai-title">Asistente financiero</div>
+        <div class="ai-status">● Conectado a tus datos</div>
+      </div>
+    </div>
+    <div class="ai-messages" id="ai-messages">
+      <div class="ai-msg bot">¡Hola! Soy tu asistente financiero. Tengo acceso a todos tus datos — préstamos, tarjetas, ingresos, metas. ¿En qué te ayudo?</div>
+    </div>
+    <div class="ai-suggestions" id="ai-suggestions">
+      <button class="ai-sug" onclick="askAI('¿Cuál es mi situación financiera actual?')">Mi situación actual</button>
+      <button class="ai-sug" onclick="askAI('¿Cómo puedo pagar mis tarjetas más rápido?')">Pagar tarjetas</button>
+      <button class="ai-sug" onclick="askAI('¿Cuánto me queda disponible este mes?')">Disponible este mes</button>
+      <button class="ai-sug" onclick="askAI('¿Cuál es mi deuda más urgente?')">Deuda urgente</button>
+      <button class="ai-sug" onclick="askAI('Dame un plan para ahorrar $5,000')">Plan de ahorro</button>
+      <button class="ai-sug" onclick="askAI('¿Cuál es mi score financiero y cómo mejorarlo?')">Mejorar mi score</button>
+    </div>
+    <div class="ai-input-row">
+      <input class="ai-input" type="text" id="ai-input" placeholder="Preguntá lo que quieras..." onkeydown="if(event.key==='Enter')sendAI()"/>
+      <button class="ai-send" onclick="sendAI()">↑</button>
+    </div>
+  </div>
+
+  <!-- FAQ PAGE -->
+  <div id="page-faq" class="page">
+    <div style="display:flex;align-items:center;gap:10px;padding:16px 18px 12px;">
+      <button onclick="goPage('home')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">←</button>
+      <div style="font-size:20px;font-weight:600;letter-spacing:-.5px;">Ayuda y FAQ</div>
+    </div>
+    <div style="padding:0 18px 16px;">
+      <div id="faq-content"></div>
+    </div>
+  </div>
+
   <!-- BOTTOM NAV -->
   <div class="bot-nav">
     <div class="bnav active" id="nav-home" onclick="goPage('home')"><div class="bicon">🏠</div><div class="blabel">Inicio</div></div>
     <div class="bnav" id="nav-movimientos" onclick="goPage('movimientos')"><div class="bicon">📋</div><div class="blabel">Movimientos</div></div>
     <button class="bnav-add" onclick="openModal()">+</button>
     <div class="bnav" id="nav-compromisos" onclick="goPage('compromisos')"><div class="bicon">🔁</div><div class="blabel">Compromisos</div></div>
+    <div class="bnav" id="nav-planificar" onclick="goPage('planificar')"><div class="bicon">🎯</div><div class="blabel">Planificar</div></div>
     <div class="bnav" id="nav-estados" onclick="goPage('estados')"><div class="bicon">📊</div><div class="blabel">Estados</div></div>
   </div>
 </div>
@@ -826,7 +1037,7 @@ var CTX_ARR=[]; // array de contextos para checkboxes
 var modalType='gasto';
 var MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 var MESES_C=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-var D={bancos:[],ingresos:[],cxc:[],cxp:[],prestamos:[],hipotecas:[],tarjetas:[],servicios:[],seguros:[],movimientos:[],gastos:[],bolsillos:[],partidas:[]};
+var D={bancos:[],ingresos:[],cxc:[],cxp:[],prestamos:[],hipotecas:[],tarjetas:[],servicios:[],seguros:[],movimientos:[],gastos:[],bolsillos:[],partidas:[],fondos:[]};
 var VIEW_MES=HOY.getMonth();
 var VIEW_ANIO=HOY.getFullYear();
 
@@ -929,7 +1140,7 @@ async function doReset(){
 
 document.getElementById('btn-salir').addEventListener('click',async function(){
   showLoad(true);await sb.auth.signOut();uid=null;userName='';
-  D={bancos:[],ingresos:[],cxc:[],cxp:[],prestamos:[],hipotecas:[],tarjetas:[],servicios:[],seguros:[],movimientos:[],gastos:[],bolsillos:[],partidas:[]};
+  D={bancos:[],ingresos:[],cxc:[],cxp:[],prestamos:[],hipotecas:[],tarjetas:[],servicios:[],seguros:[],movimientos:[],gastos:[],bolsillos:[],partidas:[],fondos:[]};
   showLoad(false);
   document.getElementById('app').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
@@ -986,6 +1197,7 @@ async function startApp(user){
   document.getElementById('app').style.display='block';
   updateGreeting();
   renderAll();
+  checkTour();
 }
 
 function navMes(delta){
@@ -1014,7 +1226,7 @@ function updateGreeting(){
 // LOAD
 // ============================================================
 async function loadAll(){
-  var tables=['bancos','ingresos','cxc','cxp','prestamos','hipotecas','tarjetas','servicios','seguros','movimientos','gastos','bolsillos','partidas'];
+  var tables=['bancos','ingresos','cxc','cxp','prestamos','hipotecas','tarjetas','servicios','seguros','movimientos','gastos','bolsillos','partidas','fondos'];
   var results=await Promise.all(tables.map(async function(t){
     try{return await sb.from(t).select('*').eq('user_id',uid).order('created_at',{ascending:true});}
     catch(e){return{data:[],error:e};}
@@ -1046,7 +1258,10 @@ function goPage(page){
   document.querySelectorAll('.bnav').forEach(function(n){n.classList.remove('active');});
   document.getElementById('page-'+page).classList.add('active');
   var nav=document.getElementById('nav-'+page);if(nav)nav.classList.add('active');
-  renderAll();window.scrollTo(0,0);
+  if(page==='planificar'){renderPlanificar();}
+  else if(page==='faq'){renderFAQ();}
+  else{renderAll();}
+  window.scrollTo(0,0);
 }
 function stab(id,btn){
   var parent=btn.parentElement;
@@ -2011,6 +2226,405 @@ async function addPart(bolId){
 async function delPart(id){await sb.from('partidas').delete().eq('id',id).eq('user_id',uid);D.partidas=D.partidas.filter(function(x){return x.id!==id;});renderAll();}
 
 // ============================================================
+// PLANIFICACIÓN FINANCIERA
+// ============================================================
+
+var estrategiaActual = 'avalanche';
+
+function setEstrategia(tipo) {
+  estrategiaActual = tipo;
+  var btnA = document.getElementById('btn-avalanche');
+  var btnS = document.getElementById('btn-snowball');
+  var desc = document.getElementById('estrategia-desc');
+  if (tipo === 'avalanche') {
+    btnA.style.cssText = 'flex:1;padding:8px;border-radius:8px;border:1px solid var(--green-border);background:var(--green-bg);color:var(--green);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);';
+    btnS.style.cssText = 'flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);';
+    desc.textContent = '⚡ Avalanche: Pagás primero la deuda con mayor tasa de interés. Ahorrás más dinero en intereses a largo plazo.';
+  } else {
+    btnS.style.cssText = 'flex:1;padding:8px;border-radius:8px;border:1px solid var(--green-border);background:var(--green-bg);color:var(--green);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);';
+    btnA.style.cssText = 'flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);';
+    desc.textContent = '❄️ Snowball: Pagás primero la deuda más pequeña. Genera motivación al ver deudas cerradas más rápido.';
+  }
+  renderPlanDeudas();
+}
+
+function calcMesesParaLiquidar(saldo, cuotaMin, tasaMensual, pagoExtra) {
+  if (saldo <= 0) return 0;
+  var pago = cuotaMin + pagoExtra;
+  if (tasaMensual <= 0) {
+    return Math.ceil(saldo / pago);
+  }
+  if (pago <= saldo * tasaMensual) return 999; // no alcanza ni los intereses
+  var meses = Math.ceil(Math.log(pago / (pago - saldo * tasaMensual)) / Math.log(1 + tasaMensual));
+  return Math.max(1, meses);
+}
+
+function totalIntereses(saldo, cuotaMin, tasaMensual, pagoExtra) {
+  if (saldo <= 0 || tasaMensual <= 0) return 0;
+  var pago = cuotaMin + pagoExtra;
+  var s = saldo, total = 0, meses = 0;
+  while (s > 0 && meses < 600) {
+    var int = s * tasaMensual;
+    total += int;
+    s = s + int - pago;
+    if (s < 0) s = 0;
+    meses++;
+  }
+  return total;
+}
+
+function renderPlanDeudas() {
+  var pagoExtra = parseFloat(document.getElementById('pago-extra').value) || 0;
+
+  // Recopilar todas las deudas
+  var deudas = [];
+  D.prestamos.forEach(function(p) {
+    deudas.push({
+      nombre: p.nombre, tipo: 'Préstamo',
+      saldo: parseFloat(p.saldo || 0),
+      cuota: parseFloat(p.cuota || 0),
+      tasa: parseFloat(p.tasa || 0) / 100 / 12,
+      icon: '🏦'
+    });
+  });
+  D.hipotecas.forEach(function(h) {
+    deudas.push({
+      nombre: h.nombre, tipo: 'Hipoteca',
+      saldo: parseFloat(h.saldo || 0),
+      cuota: parseFloat(h.cuota || 0),
+      tasa: parseFloat(h.tasa || 0) / 100 / 12,
+      icon: '🏠'
+    });
+  });
+  D.tarjetas.forEach(function(t) {
+    deudas.push({
+      nombre: t.nombre, tipo: 'Tarjeta',
+      saldo: parseFloat(t.saldo || 0),
+      cuota: parseFloat(t.pago || 0),
+      tasa: parseFloat(t.tasa || 0) / 100 / 12,
+      icon: '💳'
+    });
+  });
+
+  deudas = deudas.filter(function(d) { return d.saldo > 0; });
+
+  if (!deudas.length) {
+    set('plan-deudas-content', '<div class="empty"><div class="empty-icon">🎉</div>No tenés deudas registradas.</div>');
+    return;
+  }
+
+  // Ordenar según estrategia
+  if (estrategiaActual === 'avalanche') {
+    deudas.sort(function(a, b) { return b.tasa - a.tasa; });
+  } else {
+    deudas.sort(function(a, b) { return a.saldo - b.saldo; });
+  }
+
+  // Calcular plan: el pago extra se acumula a medida que se liquidan deudas
+  var extraAcum = pagoExtra;
+  var html = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">';
+
+  var totalSaldo = deudas.reduce(function(s, d) { return s + d.saldo; }, 0);
+  var totalIntSinExtra = deudas.reduce(function(s, d) { return s + totalIntereses(d.saldo, d.cuota, d.tasa, 0); }, 0);
+  var totalIntConExtra = 0;
+  var maxMeses = 0;
+
+  deudas.forEach(function(d, idx) {
+    var mesesSin = calcMesesParaLiquidar(d.saldo, d.cuota, d.tasa, 0);
+    var mesesCon = calcMesesParaLiquidar(d.saldo, d.cuota, d.tasa, extraAcum);
+    var intCon = totalIntereses(d.saldo, d.cuota, d.tasa, extraAcum);
+    totalIntConExtra += intCon;
+    if (mesesCon > maxMeses) maxMeses = mesesCon;
+
+    var ahorro = totalIntereses(d.saldo, d.cuota, d.tasa, 0) - intCon;
+    var diferencia = mesesSin - mesesCon;
+
+    var color = idx === 0 ? 'var(--green)' : 'var(--muted)';
+    var orden = idx === 0 ? '<span style="background:var(--green);color:#fff;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:700;">PRIMERO</span> ' : (idx + 1) + '. ';
+
+    html += '<div style="padding:14px 16px;border-bottom:1px solid var(--border);">' +
+      '<div style="display:flex;align-items:flex-start;gap:10px;">' +
+        '<div style="font-size:20px;">' + d.icon + '</div>' +
+        '<div style="flex:1;">' +
+          '<div style="font-size:13px;font-weight:600;margin-bottom:2px;">' + orden + d.nombre + '</div>' +
+          '<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">' + d.tipo + ' · Saldo: ' + fmt(d.saldo) + (d.tasa > 0 ? ' · ' + (d.tasa * 12 * 100).toFixed(1) + '% anual' : '') + '</div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">' +
+            '<div style="background:var(--surface2);border-radius:8px;padding:8px 10px;">' +
+              '<div style="font-size:10px;color:var(--muted);">Sin pago extra</div>' +
+              '<div style="font-size:13px;font-weight:600;">' + (mesesSin >= 999 ? '∞' : mesesSin + ' meses') + '</div>' +
+            '</div>' +
+            '<div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:8px 10px;">' +
+              '<div style="font-size:10px;color:var(--green);">Con pago extra</div>' +
+              '<div style="font-size:13px;font-weight:600;color:var(--green);">' + (mesesCon >= 999 ? '∞' : mesesCon + ' meses') + '</div>' +
+            '</div>' +
+          '</div>' +
+          (diferencia > 0 || ahorro > 50 ? '<div style="margin-top:6px;font-size:11px;color:var(--green);font-weight:500;">✓ Liquidás ' + diferencia + ' meses antes' + (ahorro > 0 ? ' · Ahorrás ' + fmt(ahorro) + ' en intereses' : '') + '</div>' : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+    // El pago extra del deuda liquidada pasa a la siguiente
+    extraAcum += d.cuota;
+  });
+
+  // Resumen total
+  var ahorroTotal = totalIntSinExtra - totalIntConExtra;
+  html += '<div style="padding:14px 16px;background:var(--surface2);">' +
+    '<div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:10px;">RESUMEN DEL PLAN</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
+      '<div style="padding:8px 12px;background:var(--surface);border-radius:8px;">' +
+        '<div style="font-size:10px;color:var(--muted);">Deuda total</div>' +
+        '<div style="font-size:15px;font-weight:700;font-family:var(--mono);color:var(--red);">' + fmt(totalSaldo) + '</div>' +
+      '</div>' +
+      '<div style="padding:8px 12px;background:var(--green-bg);border-radius:8px;border:1px solid var(--green-border);">' +
+        '<div style="font-size:10px;color:var(--green);">Ahorro en intereses</div>' +
+        '<div style="font-size:15px;font-weight:700;font-family:var(--mono);color:var(--green);">' + fmt(ahorroTotal) + '</div>' +
+      '</div>' +
+    '</div>' +
+  '</div></div>';
+
+  set('plan-deudas-content', html);
+}
+
+// ============================================================
+// SIMULADOR
+// ============================================================
+function renderSimulador() {
+  var mesesObj = parseInt(document.getElementById('sim-meses').value) || 24;
+  var selDeuda = document.getElementById('sim-deuda').value;
+
+  var deudas = [];
+  if (selDeuda === 'total' || selDeuda === '') {
+    D.prestamos.forEach(function(p) { if(parseFloat(p.saldo)>0) deudas.push({nombre:p.nombre,saldo:parseFloat(p.saldo),cuota:parseFloat(p.cuota),tasa:parseFloat(p.tasa||0)/100/12}); });
+    D.hipotecas.forEach(function(h) { if(parseFloat(h.saldo)>0) deudas.push({nombre:h.nombre,saldo:parseFloat(h.saldo),cuota:parseFloat(h.cuota),tasa:parseFloat(h.tasa||0)/100/12}); });
+    D.tarjetas.forEach(function(t) { if(parseFloat(t.saldo)>0) deudas.push({nombre:t.nombre,saldo:parseFloat(t.saldo),cuota:parseFloat(t.pago),tasa:parseFloat(t.tasa||0)/100/12}); });
+  } else {
+    var id = parseInt(selDeuda.split('-')[1]);
+    var tipo = selDeuda.split('-')[0];
+    var src = tipo === 'pr' ? D.prestamos : tipo === 'hi' ? D.hipotecas : D.tarjetas;
+    var d = src.find(function(x){return x.id===id;});
+    if (d) deudas.push({nombre:d.nombre,saldo:parseFloat(d.saldo),cuota:parseFloat(d.cuota||d.pago),tasa:parseFloat(d.tasa||0)/100/12});
+  }
+
+  var saldoTotal = deudas.reduce(function(s,d){return s+d.saldo;},0);
+  var cuotaActual = deudas.reduce(function(s,d){return s+d.cuota;},0);
+
+  if (!saldoTotal) { set('sim-resultado', '<div class="empty">Sin deudas para simular.</div>'); return; }
+
+  // Calcular pago necesario para liquidar en X meses
+  // Usando promedio ponderado de tasas
+  var tasaProm = deudas.reduce(function(s,d){return s+d.tasa*d.saldo;},0) / saldoTotal;
+  var pagoNecesario;
+  if (tasaProm <= 0) {
+    pagoNecesario = saldoTotal / mesesObj;
+  } else {
+    pagoNecesario = saldoTotal * (tasaProm * Math.pow(1+tasaProm, mesesObj)) / (Math.pow(1+tasaProm, mesesObj) - 1);
+  }
+
+  var pagoExtra = Math.max(0, pagoNecesario - cuotaActual);
+  var totalPagado = pagoNecesario * mesesObj;
+  var totalIntereses = totalPagado - saldoTotal;
+
+  var html = '<div style="background:var(--surface);border:1px solid var(--green-border);border-radius:var(--r);padding:14px 16px;">' +
+    '<div style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:12px;">Para liquidar en ' + mesesObj + ' meses necesitás:</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
+      '<div style="padding:10px 12px;background:var(--surface2);border-radius:8px;">' +
+        '<div style="font-size:10px;color:var(--muted);">Pago mensual total</div>' +
+        '<div style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--green);">' + fmt(pagoNecesario) + '</div>' +
+      '</div>' +
+      '<div style="padding:10px 12px;background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:8px;">' +
+        '<div style="font-size:10px;color:var(--amber);">Pago EXTRA necesario</div>' +
+        '<div style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--amber);">' + fmt(pagoExtra) + '</div>' +
+      '</div>' +
+      '<div style="padding:8px 12px;background:var(--surface2);border-radius:8px;">' +
+        '<div style="font-size:10px;color:var(--muted);">Pago actual/mes</div>' +
+        '<div style="font-size:14px;font-weight:600;font-family:var(--mono);">' + fmt(cuotaActual) + '</div>' +
+      '</div>' +
+      '<div style="padding:8px 12px;background:var(--red-bg);border:1px solid var(--red-border);border-radius:8px;">' +
+        '<div style="font-size:10px;color:var(--red);">Total intereses</div>' +
+        '<div style="font-size:14px;font-weight:600;font-family:var(--mono);color:var(--red);">' + fmt(totalIntereses) + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="margin-top:10px;font-size:11px;color:var(--muted);">Deuda total: ' + fmt(saldoTotal) + ' · Pagás un total de ' + fmt(totalPagado) + '</div>' +
+  '</div>';
+  set('sim-resultado', html);
+}
+
+function renderSimulador2() {
+  var pagoMensual = parseFloat(document.getElementById('sim-pago').value) || 0;
+  if (!pagoMensual) { set('sim-resultado2', ''); return; }
+
+  var deudas = [];
+  D.prestamos.forEach(function(p) { if(parseFloat(p.saldo)>0) deudas.push({saldo:parseFloat(p.saldo),tasa:parseFloat(p.tasa||0)/100/12}); });
+  D.hipotecas.forEach(function(h) { if(parseFloat(h.saldo)>0) deudas.push({saldo:parseFloat(h.saldo),tasa:parseFloat(h.tasa||0)/100/12}); });
+  D.tarjetas.forEach(function(t) { if(parseFloat(t.saldo)>0) deudas.push({saldo:parseFloat(t.saldo),tasa:parseFloat(t.tasa||0)/100/12}); });
+
+  var saldoTotal = deudas.reduce(function(s,d){return s+d.saldo;},0);
+  var tasaProm = deudas.length ? deudas.reduce(function(s,d){return s+d.tasa*d.saldo;},0)/saldoTotal : 0;
+
+  var meses = calcMesesParaLiquidar(saldoTotal, pagoMensual, tasaProm, 0);
+  var totalPagado = pagoMensual * meses;
+  var totalInt = totalPagado - saldoTotal;
+
+  var html = '<div style="margin-top:8px;padding:10px 12px;background:var(--surface2);border-radius:8px;">';
+  if (meses >= 999) {
+    html += '<div style="color:var(--red);font-weight:600;">⚠️ Ese pago no alcanza a cubrir los intereses. Necesitás al menos ' + fmt(saldoTotal*tasaProm + 1) + '/mes.</div>';
+  } else {
+    var anios = Math.floor(meses/12), mesesR = meses%12;
+    html += '<div style="font-size:13px;font-weight:600;color:var(--green);margin-bottom:4px;">✓ Liquidás en ' + (anios>0?anios+' años y ':'')+mesesR+' meses</div>';
+    html += '<div style="font-size:11px;color:var(--muted);">Total pagado: ' + fmt(totalPagado) + ' · Intereses: ' + fmt(totalInt) + '</div>';
+  }
+  html += '</div>';
+  set('sim-resultado2', html);
+}
+
+// ============================================================
+// SCORE DE SALUD FINANCIERA
+// ============================================================
+function calcScore() {
+  var score = 100;
+  var factores = [];
+
+  // 1. Ratio deuda/ingreso (max 30 puntos)
+  var ingT = sum('ingresos','monto');
+  var egT = sum('prestamos','cuota') + sum('hipotecas','cuota') + sum('tarjetas','pago');
+  var ratio = ingT > 0 ? egT/ingT : 1;
+  var ptDeuda = Math.max(0, 30 - Math.round(ratio * 60));
+  score -= (30 - ptDeuda);
+  var ratioColor = ratio < 0.3 ? 'var(--green)' : ratio < 0.5 ? 'var(--amber)' : 'var(--red)';
+  factores.push({icon:'💳', label:'Ratio deuda/ingreso', valor:(ratio*100).toFixed(0)+'%', pts:ptDeuda, max:30, color:ratioColor, desc:ratio<0.3?'Excelente — menos del 30%':ratio<0.5?'Moderado — entre 30-50%':'Alto — supera el 50%'});
+
+  // 2. Utilización tarjetas (max 25 puntos)
+  var tdcScore = 25;
+  D.tarjetas.forEach(function(t){
+    var u = t.limite>0?t.saldo/t.limite:0;
+    if(u>=1) tdcScore -= 15;
+    else if(u>=0.7) tdcScore -= 8;
+    else if(u>=0.3) tdcScore -= 3;
+  });
+  tdcScore = Math.max(0, tdcScore);
+  score -= (25 - tdcScore);
+  var tdcColor = tdcScore >= 20 ? 'var(--green)' : tdcScore >= 10 ? 'var(--amber)' : 'var(--red)';
+  factores.push({icon:'💳', label:'Utilización tarjetas', valor:tdcScore+'/25', pts:tdcScore, max:25, color:tdcColor, desc:tdcScore>=20?'Buena utilización':tdcScore>=10?'Utilización moderada':'Tarjetas muy cargadas'});
+
+  // 3. Fondo de emergencia (max 20 puntos)
+  var liq = sum('bancos','saldo');
+  var mesesCubiertos = egT > 0 ? liq/egT : 0;
+  var ptEmerg = Math.min(20, Math.round(mesesCubiertos * 4));
+  score -= (20 - ptEmerg);
+  var emergColor = mesesCubiertos >= 3 ? 'var(--green)' : mesesCubiertos >= 1 ? 'var(--amber)' : 'var(--red)';
+  factores.push({icon:'🏦', label:'Fondo de emergencia', valor:mesesCubiertos.toFixed(1)+' meses', pts:ptEmerg, max:20, color:emergColor, desc:mesesCubiertos>=3?'Buen colchón (3+ meses)':mesesCubiertos>=1?'Colchón básico (1-3 meses)':'Sin colchón de seguridad'});
+
+  // 4. CxC vencidas (max 15 puntos)
+  var vencidas = D.cxc.filter(function(x){return isVenc(x);}).length;
+  var ptCxc = Math.max(0, 15 - vencidas*5);
+  score -= (15 - ptCxc);
+  var cxcColor = vencidas === 0 ? 'var(--green)' : vencidas <= 2 ? 'var(--amber)' : 'var(--red)';
+  factores.push({icon:'💰', label:'CxC al día', valor:vencidas+' vencidas', pts:ptCxc, max:15, color:cxcColor, desc:vencidas===0?'Todas las cobradas al día':vencidas+' facturas vencidas por cobrar'});
+
+  // 5. Flujo positivo (max 10 puntos)
+  var disp = ingT - egT;
+  var ptFlujo = disp > 0 ? 10 : 0;
+  score -= (10 - ptFlujo);
+  factores.push({icon:'📊', label:'Flujo mensual', valor:fmt(disp), pts:ptFlujo, max:10, color:disp>0?'var(--green)':'var(--red)', desc:disp>0?'Ingresos superan compromisos':'Déficit mensual'});
+
+  score = Math.max(0, Math.min(100, score));
+
+  var scoreColor = score >= 75 ? 'var(--green)' : score >= 50 ? 'var(--amber)' : 'var(--red)';
+  var scoreLabel = score >= 80 ? 'Salud excelente 🌟' : score >= 65 ? 'Buena salud 👍' : score >= 50 ? 'Salud moderada ⚠️' : 'Necesita atención 🚨';
+
+  // Actualizar el círculo
+  var circle = document.getElementById('score-circle');
+  if (circle) circle.style.borderColor = scoreColor;
+  set('score-valor', '<span style="color:'+scoreColor+'">'+score+'</span>');
+  set('score-label', scoreLabel);
+  set('score-detalle', 'Basado en ratio de deuda, uso de tarjetas, liquidez, CxC y flujo mensual.');
+
+  var factoresHtml = factores.map(function(f){
+    var pct = f.max > 0 ? (f.pts/f.max*100) : 0;
+    return '<div style="margin-bottom:8px;">' +
+      '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;">' +
+        '<span style="font-weight:500;">' + f.icon + ' ' + f.label + '</span>' +
+        '<span style="color:'+f.color+';font-weight:600;">' + f.valor + '</span>' +
+      '</div>' +
+      '<div style="height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;">' +
+        '<div style="height:100%;width:'+pct+'%;background:'+f.color+';border-radius:2px;transition:width .4s;"></div>' +
+      '</div>' +
+      '<div style="font-size:10px;color:var(--muted);margin-top:2px;">'+f.desc+'</div>' +
+    '</div>';
+  }).join('');
+  set('score-factores', factoresHtml);
+}
+
+function renderPlanAhorro() {
+  if (!D.fondos || !D.fondos.length) {
+    set('ahorro-lista', '<div class="empty"><div class="empty-icon">🎯</div>Sin metas de ahorro. Agregá la primera abajo.</div>');
+    return;
+  }
+  var html = D.fondos.map(function(f){
+    var p = pct(f.actual, f.meta);
+    var meses = f.aporte > 0 ? Math.ceil((f.meta - f.actual) / f.aporte) : null;
+    var fechaEst = meses ? new Date(HOY.getFullYear(), HOY.getMonth() + meses, 1) : null;
+    var colP = p >= 100 ? 'var(--green)' : p >= 50 ? 'var(--blue)' : 'var(--amber)';
+    return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:8px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">' +
+        '<div>' +
+          '<div style="font-size:14px;font-weight:600;">' + f.nombre + '</div>' +
+          '<div style="font-size:11px;color:var(--muted);margin-top:2px;">' +
+            fmt(f.actual) + ' de ' + fmt(f.meta) +
+            (f.aporte > 0 ? ' · +' + fmt(f.aporte) + '/mes' : '') +
+          '</div>' +
+        '</div>' +
+        '<div style="text-align:right;">' +
+          '<div style="font-size:20px;font-weight:700;font-family:var(--mono);color:'+colP+';">' + p + '%</div>' +
+          (meses ? '<div style="font-size:10px;color:var(--muted);">~' + meses + ' meses</div>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;margin-bottom:6px;">' +
+        '<div style="height:100%;width:'+Math.min(p,100)+'%;background:'+colP+';border-radius:4px;transition:width .4s;"></div>' +
+      '</div>' +
+      (fechaEst && p < 100 ? '<div style="font-size:11px;color:var(--muted);">Meta estimada: ' + MESES[fechaEst.getMonth()] + ' ' + fechaEst.getFullYear() + '</div>' : '') +
+      (p >= 100 ? '<div style="font-size:12px;color:var(--green);font-weight:600;">✅ Meta alcanzada</div>' : '') +
+      '<div style="margin-top:8px;display:flex;gap:8px;">' +
+        '<button class="btn-sm green" onclick="abonarFondo(' + f.id + ')">+ Abonar</button>' +
+        '<button class="btn-sm red" onclick="delFon(' + f.id + ')">Eliminar</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  set('ahorro-lista', html);
+}
+
+function abonarFondo(id) {
+  var f = D.fondos.find(function(x){return x.id===id;});
+  if (!f) return;
+  var monto = parseFloat(prompt('¿Cuánto querés abonar a ' + f.nombre + '?', f.aporte || ''));
+  if (!monto || monto <= 0) return;
+  var nuevo = parseFloat(f.actual || 0) + monto;
+  sb.from('fondos').update({actual: nuevo}).eq('id', id).eq('user_id', uid).select().then(function(res){
+    if (res.error) { err(res.error.message); return; }
+    if (res.data && res.data[0]) {
+      var i = D.fondos.findIndex(function(x){return x.id===id;});
+      if (i >= 0) D.fondos[i] = res.data[0];
+    }
+    renderPlanAhorro();
+  });
+}
+
+function renderPlanificar() {
+  calcScore();
+  setEstrategia(estrategiaActual);
+  renderPlanAhorro();
+  // Actualizar select del simulador
+  var sel = document.getElementById('sim-deuda');
+  if (sel) {
+    sel.innerHTML = '<option value="total">Todas las deudas</option>';
+    D.prestamos.forEach(function(p){ sel.innerHTML += '<option value="pr-'+p.id+'">Préstamo: '+p.nombre+'</option>'; });
+    D.hipotecas.forEach(function(h){ sel.innerHTML += '<option value="hi-'+h.id+'">Hipoteca: '+h.nombre+'</option>'; });
+    D.tarjetas.forEach(function(t){ sel.innerHTML += '<option value="tc-'+t.id+'">TDC: '+t.nombre+'</option>'; });
+  }
+}
+
+// ============================================================
 // EXPORTAR A EXCEL (CSV descargable)
 // ============================================================
 function exportarExcel(){
@@ -2028,8 +2642,8 @@ function exportarExcel(){
   });
   movs.sort(function(a,b){return new Date(b.fecha)-new Date(a.fecha);});
   
-  var csv='Fecha,Tipo,Descripción,Monto,Banco,Bolsillo,Origen
-';
+  var csv='Fecha,Tipo,Descripcion,Monto,Banco,Bolsillo,Origen\n';
+
   movs.forEach(function(m){
     csv+='"'+(m.fecha||'')+'",'
       +'"'+(m.tipo||'')+'",'
@@ -2143,6 +2757,289 @@ Podés verlas en Movimientos → Egresos');
     }
   };
   reader.readAsArrayBuffer(file);
+}
+
+// ============================================================
+// SISTEMA DE TOOLTIPS
+// ============================================================
+var TIPS = {
+  gastos: ['🛍️ Gastos del mes', 'Muestra cuánto gastaste agrupado por bolsillo. Los gastos sin bolsillo aparecen como "Sin categorizar". Usá los bolsillos para organizar por categoría.'],
+  compromisos: ['📅 Compromisos esta semana', 'Pagos e ingresos que vencen en 7 días. Tocá ○ para marcar como ejecutado — te pide el banco y actualiza el saldo automáticamente.'],
+  cobrar: ['💰 Por Cobrar', 'Facturas pendientes a clientes. Tocá ○ para marcarla como cobrada y elegir en qué banco cae el dinero.'],
+  pagar: ['📄 Por Pagar', 'Deudas con proveedores. Tocá ○ para registrar el pago y descontarlo de la cuenta bancaria correspondiente.'],
+  bolsillos: ['👝 Bolsillos', 'Presupuestos por categoría. El dinero no se separa físicamente — es un sistema de control. Verde = dentro del presupuesto. Rojo = lo superaste.'],
+  alertas: ['⚠️ Alertas automáticas', 'El sistema detecta: tarjetas con utilización >70%, CxC vencidas, seguros próximos a vencer, y déficit de flujo mensual.'],
+  planificados: ['📋 Planificados', 'Todo lo que está programado para el mes pero aún no ocurrió. Incluye cuotas, cortes de tarjeta, ingresos esperados y CxC pendientes.'],
+  ejecutados: ['✅ Ejecutados', 'Movimientos que ya ocurrieron y se registraron. El saldo bancario ya fue actualizado en cada uno.'],
+  avalanche: ['⚡ Método Avalanche', 'Pagás primero la deuda con mayor tasa de interés. Ahorrás más dinero en intereses totales. Recomendado si querés optimizar el costo financiero.'],
+  snowball: ['❄️ Método Snowball', 'Pagás primero la deuda de menor saldo. Cerrás deudas más rápido, lo que genera motivación. Pagás algo más en intereses totales.'],
+  score: ['💚 Score financiero', 'Puntaje 0-100 calculado con 5 factores: ratio deuda/ingreso (30pts), uso de tarjetas (25pts), liquidez de emergencia (20pts), CxC al día (15pts), flujo positivo (10pts).'],
+  flujo: ['📊 Flujo de caja', 'Vista cronológica del mes. ✓ verde = ya ejecutado. ○ = pendiente. Provisiones en cursiva = montos reservados pero no pagados aún.']
+};
+
+function tipBtn(key) {
+  return ' <button class="tip-btn" onclick="showTip(event,\''+key+'\')" title="Ayuda">?</button>';
+}
+
+function showTip(e, key) {
+  e.stopPropagation();
+  var tip = TIPS[key];
+  if (!tip) return;
+  var popup = document.getElementById('tip-popup');
+  document.getElementById('tip-title').textContent = tip[0];
+  document.getElementById('tip-body').textContent = tip[1];
+  var rect = e.target.getBoundingClientRect();
+  var top = rect.bottom + 8;
+  var left = Math.min(rect.left, window.innerWidth - 296);
+  if (top + 120 > window.innerHeight) top = rect.top - 130;
+  popup.style.top = top + 'px';
+  popup.style.left = Math.max(8, left) + 'px';
+  popup.classList.add('visible');
+  setTimeout(function(){ document.addEventListener('click', closeTip, {once:true}); }, 50);
+}
+
+function closeTip() {
+  document.getElementById('tip-popup').classList.remove('visible');
+}
+
+// ============================================================
+// TOUR GUIADO
+// ============================================================
+var TOUR_STEPS = [
+  {title:'Bienvenida a misfinanzas 👋', desc:'En 6 pasos te mostramos cómo funciona la app. Podés omitirlo y volver cuando quieras desde el botón ? arriba.', nav:null},
+  {title:'🏠 Tu dashboard financiero', desc:'Acá ves de un vistazo: cuánto disponés este mes, compromisos de la semana, lo que te deben y lo que debés. Todo colapsable para ver solo lo que necesitás.', nav:'home'},
+  {title:'📋 Movimientos: el corazón de la app', desc:'Cada pago o ingreso pasa por acá. "Planificados" son los compromisos del mes. Cuando tocás ○ y elegís un banco, pasan a "Ejecutados" y el saldo se actualiza.', nav:'movimientos'},
+  {title:'🔁 Compromisos: lo que entrá y salé', desc:'"Por Pagar" tiene tus cuotas, tarjetas y deudas con proveedores. "Por Cobrar" tiene ingresos esperados y facturas a clientes. Configurá los recurrentes en la pestaña Configurar.', nav:'compromisos'},
+  {title:'🎯 Planificar: tu copiloto financiero', desc:'Calculá tu score de salud financiera, creá un plan para salir de deudas con Avalanche o Snowball, simulá cuánto necesitás pagar para liquidar en X meses, y gestioná tus metas de ahorro.', nav:'planificar'},
+  {title:'🤖 Asistente IA siempre disponible', desc:'El botón 🤖 en la esquina inferior derecha abre un chat que conoce todos tus datos. Preguntale lo que quieras en lenguaje natural.', nav:null},
+];
+var tourStep = 0;
+
+function startTour() {
+  tourStep = 0;
+  document.getElementById('tour-overlay').classList.add('active');
+  renderTourStep();
+}
+
+function renderTourStep() {
+  var step = TOUR_STEPS[tourStep];
+  var total = TOUR_STEPS.length;
+  document.getElementById('tour-step-num').textContent = 'Paso ' + (tourStep+1) + ' de ' + total;
+  document.getElementById('tour-title').textContent = step.title;
+  document.getElementById('tour-desc').textContent = step.desc;
+  document.getElementById('tour-btn-next').textContent = tourStep === total-1 ? '¡Empezar! 🚀' : 'Siguiente →';
+
+  var dots = '';
+  for (var i = 0; i < total; i++) {
+    dots += '<div class="tour-dot' + (i === tourStep ? ' active' : '') + '"></div>';
+  }
+  document.getElementById('tour-dots').innerHTML = dots;
+
+  if (step.nav) {
+    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+    document.querySelectorAll('.bnav').forEach(function(n){n.classList.remove('active');});
+    var pg = document.getElementById('page-'+step.nav);
+    if (pg) pg.classList.add('active');
+    var nv = document.getElementById('nav-'+step.nav);
+    if (nv) nv.classList.add('active');
+  }
+}
+
+function nextTourStep() {
+  tourStep++;
+  if (tourStep >= TOUR_STEPS.length) { endTour(); return; }
+  renderTourStep();
+}
+
+function endTour() {
+  document.getElementById('tour-overlay').classList.remove('active');
+  localStorage.setItem('mf_tour_done', '1');
+  goPage('home');
+}
+
+function checkTour() {
+  if (!localStorage.getItem('mf_tour_done')) {
+    setTimeout(startTour, 1500);
+  }
+}
+
+// ============================================================
+// ASISTENTE IA
+// ============================================================
+var aiMessages = [];
+var aiOpen = false;
+
+function openAI() {
+  document.getElementById('ai-panel').classList.add('open');
+  aiOpen = true;
+  document.getElementById('ai-input').focus();
+}
+
+function closeAI() {
+  document.getElementById('ai-panel').classList.remove('open');
+  aiOpen = false;
+}
+
+function askAI(pregunta) {
+  document.getElementById('ai-input').value = pregunta;
+  sendAI();
+}
+
+async function sendAI() {
+  var input = document.getElementById('ai-input');
+  var pregunta = input.value.trim();
+  if (!pregunta) return;
+  input.value = '';
+
+  // Agregar mensaje del usuario
+  addAIMessage(pregunta, 'user');
+  var loadingEl = addAIMessage('Analizando tus datos...', 'bot loading');
+
+  // Construir contexto financiero del usuario
+  var ingT = sum('ingresos','monto');
+  var egT = sum('prestamos','cuota') + sum('hipotecas','cuota') + sum('tarjetas','pago');
+  var liq = sum('bancos','saldo');
+  var disp = ingT - egT;
+
+  var tdcInfo = D.tarjetas.map(function(t){
+    var u = t.limite>0?Math.round(t.saldo/t.limite*100):0;
+    return t.nombre+': $'+t.saldo+' / $'+t.limite+' ('+u+'% utilización, tasa '+t.tasa+'% anual)';
+  }).join('; ');
+
+  var prInfo = D.prestamos.map(function(p){
+    return p.nombre+': saldo $'+p.saldo+', cuota $'+p.cuota+'/mes, tasa '+p.tasa+'% anual';
+  }).join('; ');
+
+  var hipInfo = D.hipotecas.map(function(h){
+    var eq = parseFloat(h.valor||0)-parseFloat(h.saldo||0);
+    return h.nombre+': saldo $'+h.saldo+', cuota $'+h.cuota+'/mes, equity $'+eq.toFixed(0);
+  }).join('; ');
+
+  var cxcPend = D.cxc.filter(function(x){return !x.cobrado;});
+  var cxcInfo = cxcPend.length + ' facturas pendientes por $' + cxcPend.reduce(function(s,x){return s+parseFloat(x.monto||0);},0).toFixed(2);
+
+  var bolInfo = D.bolsillos.map(function(b){
+    var g = gastoBol(b.id,null);
+    return b.nombre+': gastado $'+g.toFixed(0)+' de $'+b.presup;
+  }).join('; ');
+
+  var subsMes = D.servicios.reduce(function(s,x){return s+eqMes(x.monto,x.frec);},0);
+  var provMes = D.seguros.reduce(function(s,x){return s+eqMes(x.monto,x.frec);},0);
+
+  var contexto = 'Soy el asistente financiero de '+userName+'. Estos son sus datos reales:\n'+
+    '- Ingresos fijos: $'+ingT+'/mes\n'+
+    '- Compromisos fijos: $'+egT+'/mes (préstamos+hipoteca+tarjetas+suscripciones+seguros)\n'+
+    '- Disponible neto: $'+disp.toFixed(2)+'/mes\n'+
+    '- Liquidez bancaria: $'+liq.toFixed(2)+'\n'+
+    '- Suscripciones equiv.: $'+subsMes.toFixed(2)+'/mes\n'+
+    '- Provisiones seguros: $'+provMes.toFixed(2)+'/mes\n'+
+    (tdcInfo ? '- Tarjetas: '+tdcInfo+'\n' : '')+
+    (prInfo ? '- Préstamos: '+prInfo+'\n' : '')+
+    (hipInfo ? '- Hipoteca: '+hipInfo+'\n' : '')+
+    '- CxC: '+cxcInfo+'\n'+
+    (bolInfo ? '- Bolsillos: '+bolInfo+'\n' : '')+
+    '\nResponde en español, de forma concisa y práctica. Usa los datos reales del usuario. Sé directo y da recomendaciones específicas. Máximo 200 palabras.';
+
+  try {
+    var response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 400,
+        system: contexto,
+        messages: [{role: 'user', content: pregunta}]
+      })
+    });
+    var data = await response.json();
+    var respuesta = data.content && data.content[0] ? data.content[0].text : 'No pude procesar tu pregunta. Intentá de nuevo.';
+    loadingEl.textContent = respuesta;
+    loadingEl.classList.remove('loading');
+  } catch(e) {
+    loadingEl.textContent = 'Error de conexión. Verificá tu internet e intentá de nuevo.';
+    loadingEl.classList.remove('loading');
+  }
+
+  var msgs = document.getElementById('ai-messages');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addAIMessage(text, type) {
+  var msgs = document.getElementById('ai-messages');
+  var el = document.createElement('div');
+  el.className = 'ai-msg ' + type;
+  el.textContent = text;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+  return el;
+}
+
+// ============================================================
+// FAQ
+// ============================================================
+var FAQ_DATA = [
+  {cat: '🏠 Inicio y dashboard', items: [
+    ['¿Qué significa "Disponible del mes"?', 'Es la diferencia entre tus ingresos fijos y todos tus compromisos del mes (cuotas de préstamos, hipoteca, pagos mínimos de tarjetas y suscripciones). No incluye gastos variables del día a día.'],
+    ['¿Por qué "Compromisos esta semana" dice 0?', 'Porque ningún pago o ingreso programado vence en los próximos 7 días. El sistema calcula automáticamente qué vence según los días configurados en cada préstamo, tarjeta e ingreso.'],
+    ['¿Cómo funcionan los bolsillos?', 'Son presupuestos por categoría. El dinero NO se separa físicamente de tu banco — es un sistema de seguimiento que te dice cuánto gastaste en cada área vs lo que presupuestaste.'],
+  ]},
+  {cat: '📋 Movimientos', items: [
+    ['¿Cuál es la diferencia entre Planificados y Ejecutados?', 'Planificados = compromisos programados que aún no ocurrieron. Ejecutados = movimientos que ya se realizaron y se registraron en el sistema. Cuando tocás ○ en un planificado, pasa a ejecutado.'],
+    ['¿Qué pasa cuando marco un compromiso como ejecutado?', 'El sistema te pide que elijas de qué banco sale (o entra) el dinero, y actualiza el saldo de esa cuenta automáticamente.'],
+    ['¿Puedo importar mis facturas de Facturillo?', 'Sí. En Movimientos tocá "📥 Importar" y seleccioná el archivo .xlsx exportado desde Facturillo. El sistema detecta las facturas y las importa como gastos.'],
+    ['¿Cómo exporto mis movimientos?', 'En Movimientos tocá "📤 Excel". Se descarga un archivo CSV con todos tus movimientos que podés abrir en Excel o Google Sheets.'],
+  ]},
+  {cat: '🔁 Compromisos (Por Cobrar / Por Pagar)', items: [
+    ['¿Cuál es la diferencia entre CxC y Por Cobrar?', 'Son lo mismo. "Por Cobrar" es el nombre amigable para las Cuentas por Cobrar (CxC) — facturas que enviaste a clientes y que aún no te han pagado.'],
+    ['¿Cómo registro cuando me pagan una factura?', 'En el bloque "Por Cobrar" tocá el ○ al lado de la factura. Te pide en qué banco cayó el dinero y actualiza el saldo automáticamente.'],
+    ['¿Para qué sirve "Por Pagar" (CxP)?', 'Para registrar deudas con proveedores o servicios con fecha de vencimiento. Diferente a las cuotas de préstamos — son pagos puntuales, no recurrentes.'],
+  ]},
+  {cat: '🎯 Planificar', items: [
+    ['¿Qué es el Score de salud financiera?', 'Un puntaje de 0 a 100 calculado con 5 factores: ratio deuda/ingreso (30pts), utilización de tarjetas (25pts), meses de emergencia cubiertos (20pts), CxC al día (15pts) y flujo positivo (10pts).'],
+    ['¿Cuál estrategia de pago de deudas me conviene?', 'Avalanche si querés ahorrar el máximo en intereses (pagás mayor tasa primero). Snowball si necesitás motivación (cerrás deudas más pequeñas primero). Ambas llevan al mismo destino, diferente camino.'],
+    ['¿Cómo funcionan las metas de ahorro?', 'Registrás el monto objetivo y tu aporte mensual. La app calcula cuándo llegarás a la meta. Podés abonar cuando quieras con el botón "+ Abonar".'],
+  ]},
+  {cat: '🏦 Cuentas y saldos', items: [
+    ['¿Con qué frecuencia debo actualizar los saldos?', 'Idealmente una vez por semana. Cuando registrás movimientos materializados el saldo se actualiza automáticamente, pero es bueno validar contra tu app del banco.'],
+    ['¿Puedo tener múltiples cuentas bancarias?', 'Sí, todas las que necesités. Podés agregar cuentas corrientes, de ahorro, de diferentes bancos. Cada movimiento ejecutado se puede asociar a una cuenta específica.'],
+    ['¿El saldo del banco se actualiza automáticamente?', 'Solo cuando materializás un compromiso (tocás ○ y elegís el banco) o registrás un gasto/ingreso con banco asociado. Para otros cambios usá el botón "Saldo" en la sección Cuentas.'],
+  ]},
+];
+
+function renderFAQ() {
+  var html = '';
+  FAQ_DATA.forEach(function(cat) {
+    html += '<div style="margin-bottom:16px;">';
+    html += '<div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;padding:0 4px;">'+cat.cat+'</div>';
+    cat.items.forEach(function(item, idx) {
+      var id = 'faq-'+Math.random().toString(36).substr(2,6);
+      html += '<div class="faq-item">' +
+        '<button class="faq-q" onclick="toggleFAQ(\''+id+'\')">' +
+          '<span>'+item[0]+'</span>' +
+          '<span class="faq-arrow" id="arr-'+id+'">▶</span>' +
+        '</button>' +
+        '<div class="faq-a" id="'+id+'">'+item[1]+'</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  });
+
+  // Botón para reiniciar el tour
+  html += '<div style="margin-top:20px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);text-align:center;">';
+  html += '<div style="font-size:13px;font-weight:500;margin-bottom:10px;">¿Querés ver el tour de bienvenida de nuevo?</div>';
+  html += '<button onclick="localStorage.removeItem(\'mf_tour_done\');startTour();" class="btn-add" style="width:auto;padding:10px 24px;">🎓 Ver tour guiado</button>';
+  html += '</div>';
+
+  set('faq-content', html);
+}
+
+function toggleFAQ(id) {
+  var el = document.getElementById(id);
+  var arr = document.getElementById('arr-'+id);
+  if (!el) return;
+  var open = el.classList.contains('open');
+  el.classList.toggle('open', !open);
+  if (arr) arr.style.transform = open ? '' : 'rotate(90deg)';
 }
 
 // ============================================================
