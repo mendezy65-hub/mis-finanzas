@@ -825,10 +825,12 @@ async function addG(){
 async function delG(id){await sb.from('gastos').delete().eq('id',id);DATA.gastos=DATA.gastos.filter(function(x){return x.id!==id;});renderAll();}
 
 async function addCxC(){
+  if(!userId){alert('Sesion expirada. Recarga la pagina.');return;}
   var cliente=document.getElementById('cxc-cli').value.trim(),monto=parseFloat(document.getElementById('cxc-mon').value),fecha=document.getElementById('cxc-fec').value||null,tipo=document.getElementById('cxc-tip').value;
-  if(!cliente||isNaN(monto))return;
-  var{data}=await sb.from('cxc').insert([{user_id:userId,cliente,monto,fecha,tipo,cobrado:false}]).select();
-  if(data)DATA.cxc.push(data[0]);
+  if(!cliente||isNaN(monto)){alert('Completa cliente y monto.');return;}
+  var{data,error}=await sb.from('cxc').insert([{user_id:userId,cliente,monto,fecha,tipo,cobrado:false}]).select();
+  if(error){alert('Error: '+error.message);return;}
+  if(data&&data[0])DATA.cxc.push(data[0]);
   document.getElementById('cxc-cli').value='';document.getElementById('cxc-mon').value='';document.getElementById('cxc-fec').value='';
   renderAll();
 }
@@ -889,12 +891,16 @@ async function addSeg(){
 async function delSeg(id){await sb.from('seguros').delete().eq('id',id);DATA.seguros=DATA.seguros.filter(function(x){return x.id!==id;});renderAll();}
 
 async function addBol(){
+  if(!userId){alert('Sesion expirada. Recarga la pagina.');return;}
   var nombre=document.getElementById('bol-nom').value.trim(),presup=parseFloat(document.getElementById('bol-pre').value);
-  if(!nombre||isNaN(presup))return;
-  var{data}=await sb.from('bolsillos').insert([{user_id:userId,nombre,presup}]).select();
-  if(data){DATA.bolsillos.push(data[0]);updateBolSelect();}
+  if(!nombre||isNaN(presup)){alert('Completa nombre y presupuesto.');return;}
+  var{data,error}=await sb.from('bolsillos').insert([{user_id:userId,nombre,presup}]).select();
+  if(error){alert('Error: '+error.message);return;}
+  if(data&&data[0]){DATA.bolsillos.push(data[0]);updateBolSelect();}
   document.getElementById('bol-nom').value='';document.getElementById('bol-pre').value='';
   renderAll();
+  // Abrir el bolsillo recién creado para agregar partidas
+  if(data&&data[0]){setTimeout(function(){toggleBol('bb-'+data[0].id);},100);}
 }
 async function delBol(id){if(!confirm('¿Eliminar este bolsillo y sus partidas?'))return;await sb.from('partidas').delete().eq('bolsillo_id',id);await sb.from('bolsillos').delete().eq('id',id);DATA.bolsillos=DATA.bolsillos.filter(function(x){return x.id!==id;});DATA.partidas=DATA.partidas.filter(function(x){return x.bolsillo_id!==id;});updateBolSelect();renderAll();}
 
