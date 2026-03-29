@@ -789,8 +789,7 @@ var uid=null,userName='';
 var HOY=new Date(),DIA=HOY.getDate();
 var HOY_D=new Date(HOY.getFullYear(),HOY.getMonth(),HOY.getDate());
 var matCtx=null; // contexto de materialización pendiente
-var CTX_MAP={}; // mapa de contextos para checkboxes
-var ctxCounter=0; // contador para IDs únicos
+var CTX_ARR=[]; // array de contextos para checkboxes
 var modalType='gasto';
 var MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 var MESES_C=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -1156,6 +1155,7 @@ function renderAll(){
 }
 
 function renderHome(){
+  CTX_ARR=[];
   var ingT=sum('ingresos','monto');
   var subsMes=D.servicios.reduce(function(s,x){return s+eqMes(x.monto,x.frec);},0);
   var provMes=D.seguros.reduce(function(s,x){return s+eqMes(x.monto,x.frec);},0);
@@ -1231,7 +1231,7 @@ function renderHome(){
       var cid=mkCtx(ctxObj);
       var checkEl=done
         ?'<div class="comp-check done"></div>'
-        :'<div class="comp-check" onclick="matFromCtx(\''+cid+'\')"></div>';
+        :'<div class="comp-check" onclick="matFromCtx('+cid+')"></div>';
       ch+=
         '<div class="'+rowCls+'">'+
         checkEl+
@@ -1256,7 +1256,7 @@ function renderHome(){
         var cobrH=cobrarPend.slice(0,4).map(function(x){
       var venc=isVenc(x);
             var ctxObj={id:x.id,tipo:'ingreso',nombre:x.cliente,monto:x.monto,origen:'cxc',pagado:false};
-      var checkEl='<div class="comp-check" onclick="matFromCtx(\''+mkCtx(ctxObj)+'\')"></div>';
+        var checkEl='<div class="comp-check" onclick="matFromCtx('+mkCtx(ctxObj)+')" ></div>';
       return '<div class="comp-row'+(venc?' urgente':'')+'">'+checkEl+'<div class="comp-icon" style="background:var(--blue-bg);">💰</div><div class="comp-info"><div class="comp-name">'+x.cliente+'</div><div class="comp-meta">'+(x.fecha||'Sin fecha')+(venc?'<span class="badge red">Vencida</span>':'')+'</div></div><div class="comp-amt pos">'+fmt(x.monto)+'</div></div>';
     }).join('');
     set('h-cobrar-content',cobrH);
@@ -1290,12 +1290,11 @@ function renderHome(){
 }
 
 function mkCtx(obj){
-  var id='ctx'+(++ctxCounter);
-  CTX_MAP[id]=obj;
-  return id;
+  CTX_ARR.push(obj);
+  return CTX_ARR.length-1;
 }
-function matFromCtx(id){
-  var c=CTX_MAP[id];
+function matFromCtx(idx){
+  var c=CTX_ARR[idx];
   if(c)openMat(c);
 }
 function matFromData(el){
@@ -1319,6 +1318,7 @@ function calcUrgencia(fecha){
 }
 
 function renderMovimientos(){
+  CTX_ARR=[]; // limpiar contextos al re-render
   // ── Actualizar filtro de bancos ──
   var bf=document.getElementById('plan-banco-filter');
   if(bf){
@@ -1498,7 +1498,7 @@ function renderMovimientos(){
       g.items.forEach(function(p){
         var ctxObj={id:p.id,tipo:p.tipo==='ingreso'?'ingreso':'pago',nombre:p.nombre,monto:p.monto,origen:p.origen,pagado:false};
         var cid=mkCtx(ctxObj);
-        var checkEl='<div class="comp-check" onclick="matFromCtx(''+cid+'')" style="flex-shrink:0;"></div>';
+        var checkEl='<div class="comp-check" onclick="matFromCtx('+cid+')" style="flex-shrink:0;"></div>';
         var diasLabel=p.dias===null?'Sin fecha':p.dias===0?'Hoy':p.dias===1?'Mañana':'En '+p.dias+'d';
         var diasColor=p.vencida?'var(--red)':(p.dias!==null&&p.dias<=1)?'var(--red)':(p.dias!==null&&p.dias<=3)?'var(--amber)':'var(--muted)';
         ph+='<div class="comp-row">'+checkEl+
@@ -1598,7 +1598,7 @@ function renderCompromisos(){
   function mkCheck(done, ctxObj){
     if(done)return '<div class="comp-check done"></div>';
     var cid=mkCtx(ctxObj);
-    return '<div class="comp-check" onclick="matFromCtx(\'' + cid + '\')"></div>';
+    return '<div class="comp-check" onclick="matFromCtx(' + cid + ')" ></div>';
   }
   // Por Pagar
   var pagarH='';
