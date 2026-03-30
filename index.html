@@ -1,5 +1,5 @@
 <!--
-  misfinanzas v3.7 | 2026-03-30 | build:20260329_235920
+  misfinanzas v3.7 | 2026-03-30 | build:20260330_000200
   Cambios: secciones colapsables en home, flujo materialización con CTX_MAP,
   Por Cobrar / Por Pagar, movimientos unificados, nombre usuario en saludo,
   fix loadAll async/try-catch, fix onclick sin JSON en HTML strings.
@@ -777,7 +777,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div class="sec-block-body" id="body-form-banco">
           <div class="form-section">
             <div class="form-grid">
-              <div class="form-field"><label>Banco</label><select id="b-banco"><option>Banesco</option><option>Metro Bank</option><option>Banistmo</option><option>Banco General</option><option>BAC</option><option>Global Bank</option><option>Multibank</option><option>Caja de Ahorros</option><option>Scotia Bank</option><option>Otro</option></select></div>
+              <div class="form-field"><label>Banco</label><input type="text" id="b-banco" placeholder="Nombre del banco" list="bancos-list-data" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);font-family:var(--font);width:100%;"/>
+<datalist id="bancos-list-data">
+  <option>Banesco</option><option>Metro Bank</option><option>Banistmo</option>
+  <option>Banco General</option><option>BAC</option><option>Global Bank</option>
+  <option>Multibank</option><option>Caja de Ahorros</option><option>Scotia Bank</option>
+  <option>BBVA</option><option>Santander</option><option>Banamex</option>
+  <option>Bancomer</option><option>Banorte</option><option>HSBC</option>
+  <option>Davivienda</option><option>Bancolombia</option><option>Scotiabank</option>
+  <option>Itaú</option><option>Bradesco</option><option>Banco do Brasil</option>
+</datalist></div>
               <div class="form-field"><label>Tipo</label><select id="b-tipo"><option value="corriente">Corriente</option><option value="ahorro">Ahorro</option></select></div>
               <div class="form-field"><label>Alias</label><input type="text" id="b-nom" placeholder="Ej: Cuenta nómina"/></div>
               <div class="form-field"><label>Saldo $</label><input type="number" id="b-sal" step="0.01"/></div>
@@ -839,14 +848,21 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div style="padding:0 18px 12px;">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;">
           <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Estrategia de pago</div>
-          <div style="display:flex;gap:6px;margin-bottom:12px;">
+          <div style="display:flex;gap:6px;margin-bottom:10px;">
             <button id="btn-avalanche" onclick="setEstrategia('avalanche')" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--green-border);background:var(--green-bg);color:var(--green);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">⚡ Avalanche</button>
             <button id="btn-snowball" onclick="setEstrategia('snowball')" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">❄️ Snowball</button>
           </div>
           <div id="estrategia-desc" style="font-size:12px;color:var(--muted);line-height:1.5;padding:8px;background:var(--surface2);border-radius:8px;margin-bottom:10px;"></div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <!-- Selección de deudas -->
+          <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Deudas a incluir en el plan</div>
+          <div id="deudas-selector" style="margin-bottom:10px;"></div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
             <label style="font-size:12px;color:var(--muted);font-weight:500;white-space:nowrap;">Pago extra/mes $</label>
             <input type="number" id="pago-extra" value="0" min="0" step="50" oninput="renderPlanDeudas()" style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--surface);color:var(--text);font-family:var(--font);font-weight:600;">
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="renderPlanDeudas()" style="flex:1;padding:10px;border-radius:8px;border:none;background:var(--green);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);">Calcular plan</button>
+            <button onclick="activarPlan()" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--green-border);background:var(--green-bg);color:var(--green);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);">✅ Activar plan</button>
           </div>
         </div>
         <div id="plan-deudas-content"></div>
@@ -895,6 +911,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <div class="form-field"><label>Meta $</label><input type="number" id="fon-met" placeholder="5000" step="100"/></div>
             <div class="form-field"><label>Ahorrado $</label><input type="number" id="fon-act" placeholder="0" step="50"/></div>
             <div class="form-field"><label>Aporte/mes $</label><input type="number" id="fon-apo" placeholder="200" step="50"/></div>
+            <div class="form-field full"><label>¿Dónde depositás este dinero?</label><select id="fon-banco" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);font-family:var(--font);width:100%;"><option value="">— Sin cuenta vinculada —</option></select></div>
+            <div class="form-field full"><label>Tipo de meta</label><select id="fon-tipo" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);font-family:var(--font);width:100%;">
+              <option value="mental">Mental (solo seguimiento, sin mover dinero)</option>
+              <option value="vinculada">Cuenta vinculada (el dinero va a la cuenta seleccionada)</option>
+              <option value="virtual">Bolsillo virtual (reservado dentro de tu cuenta actual)</option>
+            </select></div>
           </div>
           <button class="btn-add" onclick="addFon()" style="margin-top:10px;">+ Agregar meta</button>
         </div>
@@ -966,11 +988,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="bot-nav">
     <div class="bnav active" id="nav-home" onclick="goPage('home')"><div class="bicon">🏠</div><div class="blabel">Inicio</div></div>
     <div class="bnav" id="nav-movimientos" onclick="goPage('movimientos')"><div class="bicon">📋</div><div class="blabel">Movimientos</div></div>
-    <button class="bnav-add" onclick="openModal()">+</button>
     <div class="bnav" id="nav-compromisos" onclick="goPage('compromisos')"><div class="bicon">🔁</div><div class="blabel">Compromisos</div></div>
     <div class="bnav" id="nav-planificar" onclick="goPage('planificar')"><div class="bicon">🎯</div><div class="blabel">Planificar</div></div>
     <div class="bnav" id="nav-estados" onclick="goPage('estados')"><div class="bicon">📊</div><div class="blabel">Estados</div></div>
   </div>
+  <!-- Botón + flotante principal -->
+  <button id="fab-add" onclick="openModal()" title="Registrar movimiento" style="position:fixed;bottom:90px;right:76px;width:52px;height:52px;border-radius:50%;background:var(--green);color:#fff;font-size:26px;font-weight:300;border:none;cursor:pointer;z-index:300;box-shadow:0 4px 16px rgba(0,168,107,.4);display:flex;align-items:center;justify-content:center;line-height:1;">+</button>
 </div>
 
 <!-- MODAL AGREGAR GASTO/INGRESO -->
@@ -1022,7 +1045,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 // ============================================================
 // CONFIG
 // ============================================================
-console.log('misfinanzas v3.7 build:20260329_235920 cargada correctamente');
+console.log('misfinanzas v3.7 build:20260330_000200 cargada correctamente');
 const SURL='https://gzskzbewfwcpzsinzqym.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6c2t6YmV3ZndjcHpzaW56cXltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDIzOTMsImV4cCI6MjA5MDMxODM5M30.zwSMHzyMQU-BqHvg5m4_qngdy2DQgELhZZ7pchIsn8o';
 const sb=supabase.createClient(SURL,SKEY,{auth:{storage:window.localStorage,autoRefreshToken:true,persistSession:true,detectSessionInUrl:true,flowType:'implicit'}});
@@ -1057,9 +1080,16 @@ function diasHasta(f){if(!f)return null;return Math.round((new Date(f+'T00:00:00
 function calcProx(ult,frec){if(!ult)return null;var d=new Date(ult+'T00:00:00');d.setMonth(d.getMonth()+parseInt(frec));return d.toISOString().split('T')[0];}
 function frecL(f){return({1:'Mensual',3:'Trimestral',6:'Semestral',12:'Anual'})[f]||f;}
 function catSvIcon(c){return({entretenimiento:'🎬',productividad:'💼',almacenamiento:'💾',salud:'💊',educacion:'📚',otro:'🔄'})[c]||'🔄';}
-function gastoBol(bId,pId){
-  var fromMovs=D.movimientos.filter(function(m){return m.tipo==='gasto'&&m.bolsillo_id==bId&&(!pId||m.partida_id==pId);}).reduce(function(s,m){return s+parseFloat(m.monto||0);},0);
-  var fromGastos=D.gastos.filter(function(g){return g.bolsillo_id==bId&&(!pId||g.partida_id==pId);}).reduce(function(s,g){return s+parseFloat(g.monto||0);},0);
+function gastoBol(bId,pId,mes,anio){
+  var m=mes!==undefined?mes:VIEW_MES;
+  var a=anio!==undefined?anio:VIEW_ANIO;
+  function enMes(f){
+    if(!f)return false;
+    var d=new Date((String(f)).split('T')[0]+'T00:00:00');
+    return d.getMonth()===m&&d.getFullYear()===a;
+  }
+  var fromMovs=D.movimientos.filter(function(mv){return mv.tipo==='gasto'&&mv.bolsillo_id==bId&&(!pId||mv.partida_id==pId)&&enMes(mv.fecha||mv.created_at);}).reduce(function(s,mv){return s+parseFloat(mv.monto||0);},0);
+  var fromGastos=D.gastos.filter(function(g){return g.bolsillo_id==bId&&(!pId||g.partida_id==pId)&&enMes(g.fecha||g.created_at);}).reduce(function(s,g){return s+parseFloat(g.monto||0);},0);
   return fromMovs+fromGastos;
 }
 function showLoad(v){document.getElementById('loading').style.display=v?'flex':'none';}
@@ -1246,6 +1276,9 @@ function refreshSelects(){
   // Banco modal
   var mb=document.getElementById('m-banco');
   if(mb){mb.innerHTML='<option value="">— Banco (opcional) —</option>';D.bancos.forEach(function(b){mb.innerHTML+='<option value="'+b.id+'">'+b.banco+' — '+b.nombre+'</option>';});}
+  // Banco meta ahorro
+  var fb=document.getElementById('fon-banco');
+  if(fb){fb.innerHTML='<option value="">— Sin cuenta vinculada —</option>';D.bancos.forEach(function(b){fb.innerHTML+='<option value="'+b.id+'">'+b.banco+' — '+b.nombre+'</option>';});}
   // Banco materializar
   var matb=document.getElementById('mat-banco');
   if(matb){matb.innerHTML='<option value="">— Seleccioná un banco —</option>';D.bancos.forEach(function(b){matb.innerHTML+='<option value="'+b.id+'">'+b.banco+' — '+b.nombre+' ('+fmt(b.saldo)+')</option>';});}
@@ -1426,14 +1459,32 @@ function renderHome(){
   var subsMes=D.servicios.reduce(function(s,x){return s+eqMes(x.monto,x.frec);},0);
   var provMes=D.seguros.reduce(function(s,x){return s+eqMes(x.monto,x.frec);},0);
   var egT=sum('prestamos','cuota')+sum('hipotecas','cuota')+sum('tarjetas','pago')+subsMes+provMes;
-  var gastMovs=D.movimientos.filter(function(m){return m.tipo==='gasto';}).reduce(function(s,m){return s+parseFloat(m.monto||0);},0);
-  var gastLegacy=D.gastos.filter(function(g){return parseFloat(g.monto||0)>0;}).reduce(function(s,g){return s+parseFloat(g.monto||0);},0);
+  // Para meses anteriores, mostrar movimientos reales de ese período
+  var esMesActualHome=(VIEW_MES===HOY.getMonth()&&VIEW_ANIO===HOY.getFullYear());
+  // Filtrar gastos por mes seleccionado
+  function enMesHome(f){
+    if(!f)return false;
+    var d=new Date((String(f)).split('T')[0]+'T00:00:00');
+    return d.getMonth()===VIEW_MES&&d.getFullYear()===VIEW_ANIO;
+  }
+  var gastMovs=D.movimientos.filter(function(m){return m.tipo==='gasto'&&enMesHome(m.fecha||m.created_at);}).reduce(function(s,m){return s+parseFloat(m.monto||0);},0);
+  var gastLegacy=D.gastos.filter(function(g){return parseFloat(g.monto||0)>0&&enMesHome(g.fecha||g.created_at);}).reduce(function(s,g){return s+parseFloat(g.monto||0);},0);
   var gastReal=gastMovs+gastLegacy;
   var disp=ingT-egT;
 
   // Balance card
   set('h-disp',fmtK(disp));
-  set('h-disp-sub',disp>=0?'Flujo positivo':'Déficit mensual');
+  if(!esMesActualHome){
+    // Mes anterior: mostrar movimientos reales
+    var ingReal=D.movimientos.filter(function(m){return m.tipo==='ingreso'&&enMesHome(m.fecha||m.created_at);}).reduce(function(s,m){return s+parseFloat(m.monto||0);},0);
+    var egReal=gastReal;
+    set('h-disp',fmtK(ingReal-egReal));
+    set('h-disp-sub','Resultado real de '+MESES[VIEW_MES]+' '+VIEW_ANIO);
+    set('h-entra',fmtK(ingReal));
+    set('h-sale',fmtK(egReal));
+  } else {
+    set('h-disp-sub',disp>=0?'Flujo positivo':'Déficit mensual');
+  }
   set('h-entra',fmtK(ingT));set('h-sale',fmtK(egT));set('h-gastado',fmtK(gastReal));
   set('h-gasto-total',fmtK(gastReal));
 
@@ -2078,9 +2129,12 @@ async function editSaldo(id){
 }
 async function editBanco(id){
   var b=D.bancos.find(function(x){return x.id===id;});if(!b)return;
-  var alias=prompt('Alias de la cuenta:',b.nombre);if(alias===null)return;
+  var alias=prompt('Nuevo alias para la cuenta (podés escribir cualquier nombre):',b.nombre);
+  if(alias===null)return;
   if(!alias.trim()){alert('El alias no puede estar vacío.');return;}
-  var{data,error}=await sb.from('bancos').update({nombre:alias.trim()}).eq('id',id).eq('user_id',uid).select();
+  var bancoNom=prompt('Nombre del banco (podés escribir cualquier banco):',b.banco);
+  if(bancoNom===null)return;
+  var{data,error}=await sb.from('bancos').update({nombre:alias.trim(),banco:bancoNom.trim()||b.banco}).eq('id',id).eq('user_id',uid).select();
   if(error){err(error.message);return;}
   if(data&&data[0]){var i=D.bancos.findIndex(function(x){return x.id===id;});if(i>=0)D.bancos[i]=data[0];}
   refreshSelects();renderAll();
@@ -2232,6 +2286,56 @@ async function delPart(id){await sb.from('partidas').delete().eq('id',id).eq('us
 
 var estrategiaActual = 'avalanche';
 
+function renderDeudasSelector() {
+  var todas = [];
+  D.prestamos.forEach(function(p){if(parseFloat(p.saldo)>0) todas.push({key:'pr-'+p.id,nombre:p.nombre,tipo:'Préstamo',saldo:p.saldo,tasa:p.tasa,icon:'🏦'});});
+  D.hipotecas.forEach(function(h){if(parseFloat(h.saldo)>0) todas.push({key:'hi-'+h.id,nombre:h.nombre,tipo:'Hipoteca',saldo:h.saldo,tasa:h.tasa,icon:'🏠'});});
+  D.tarjetas.forEach(function(t){if(parseFloat(t.saldo)>0) todas.push({key:'tc-'+t.id,nombre:t.nombre,tipo:'Tarjeta',saldo:t.saldo,tasa:t.tasa,icon:'💳'});});
+  var sel=document.getElementById('deudas-selector');
+  if(!sel)return;
+  if(!todas.length){sel.innerHTML='<div style="font-size:12px;color:var(--muted);">No tenés deudas registradas.</div>';return;}
+  sel.innerHTML=todas.map(function(d){
+    return '<label style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--surface2);border-radius:8px;margin-bottom:5px;cursor:pointer;">'+
+      '<input type="checkbox" id="sel-'+d.key+'" checked onchange="renderPlanDeudas()" style="width:16px;height:16px;accent-color:var(--green);">'+
+      '<span style="font-size:13px;flex:1;">'+d.icon+' '+d.nombre+'</span>'+
+      '<span style="font-size:11px;color:var(--muted);">'+d.tipo+' · '+fmt(d.saldo)+(d.tasa>0?' · '+d.tasa+'%':'')+' </span>'+
+    '</label>';
+  }).join('');
+}
+
+function getSelectedDeudas() {
+  var todas = [];
+  D.prestamos.forEach(function(p){if(parseFloat(p.saldo)>0)todas.push({key:'pr-'+p.id,id:p.id,nombre:p.nombre,tipo:'Préstamo',saldo:parseFloat(p.saldo),cuota:parseFloat(p.cuota),tasa:parseFloat(p.tasa||0)/100/12,icon:'🏦',dia:p.dia});});
+  D.hipotecas.forEach(function(h){if(parseFloat(h.saldo)>0)todas.push({key:'hi-'+h.id,id:h.id,nombre:h.nombre,tipo:'Hipoteca',saldo:parseFloat(h.saldo),cuota:parseFloat(h.cuota),tasa:parseFloat(h.tasa||0)/100/12,icon:'🏠',dia:h.dia});});
+  D.tarjetas.forEach(function(t){if(parseFloat(t.saldo)>0)todas.push({key:'tc-'+t.id,id:t.id,nombre:t.nombre,tipo:'Tarjeta',saldo:parseFloat(t.saldo),cuota:parseFloat(t.pago||0),tasa:parseFloat(t.tasa||0)/100/12,icon:'💳',dia:t.dia});});
+  return todas.filter(function(d){
+    var chk=document.getElementById('sel-'+d.key);
+    return !chk||chk.checked;
+  });
+}
+
+async function activarPlan() {
+  var deudas = getSelectedDeudas();
+  if(!deudas.length){alert('Seleccioná al menos una deuda.');return;}
+  var pagoExtra = parseFloat(document.getElementById('pago-extra').value)||0;
+  if(!pagoExtra){alert('Ingresá un monto de pago extra para activar el plan.');return;}
+  var mesInicio = prompt('¿A partir de qué mes querés activar el plan? (formato: AAAA-MM):', new Date().toISOString().substr(0,7));
+  if(!mesInicio)return;
+  var partes=mesInicio.split('-');
+  if(partes.length!==2){alert('Formato inválido. Usá AAAA-MM.');return;}
+  var dia=deudas[0].dia||1;
+  var fechaComp=mesInicio+'-'+(dia<10?'0'+dia:dia);
+  // Crear compromiso CxP por el pago extra
+  var desc='Plan '+estrategiaActual.charAt(0).toUpperCase()+estrategiaActual.slice(1)+' — pago extra ('+deudas.map(function(d){return d.nombre;}).join(', ')+')';
+  var{error}=await sb.from('cxp').insert([{user_id:uid,proveedor:desc,monto:pagoExtra,fecha:fechaComp,categoria:'plan_deuda',pagado:false}]);
+  if(error){err(error.message);return;}
+  await loadAll();
+  alert('✅ Plan activado. Agregaste un compromiso de '+fmt(pagoExtra)+'/mes empezando el '+fechaComp+'.
+
+Aparecerá en "Por Pagar" para que lo materialices cada mes.');
+  renderAll();
+}
+
 function setEstrategia(tipo) {
   estrategiaActual = tipo;
   var btnA = document.getElementById('btn-avalanche');
@@ -2277,37 +2381,8 @@ function totalIntereses(saldo, cuotaMin, tasaMensual, pagoExtra) {
 function renderPlanDeudas() {
   var pagoExtra = parseFloat(document.getElementById('pago-extra').value) || 0;
 
-  // Recopilar todas las deudas
-  var deudas = [];
-  D.prestamos.forEach(function(p) {
-    deudas.push({
-      nombre: p.nombre, tipo: 'Préstamo',
-      saldo: parseFloat(p.saldo || 0),
-      cuota: parseFloat(p.cuota || 0),
-      tasa: parseFloat(p.tasa || 0) / 100 / 12,
-      icon: '🏦'
-    });
-  });
-  D.hipotecas.forEach(function(h) {
-    deudas.push({
-      nombre: h.nombre, tipo: 'Hipoteca',
-      saldo: parseFloat(h.saldo || 0),
-      cuota: parseFloat(h.cuota || 0),
-      tasa: parseFloat(h.tasa || 0) / 100 / 12,
-      icon: '🏠'
-    });
-  });
-  D.tarjetas.forEach(function(t) {
-    deudas.push({
-      nombre: t.nombre, tipo: 'Tarjeta',
-      saldo: parseFloat(t.saldo || 0),
-      cuota: parseFloat(t.pago || 0),
-      tasa: parseFloat(t.tasa || 0) / 100 / 12,
-      icon: '💳'
-    });
-  });
-
-  deudas = deudas.filter(function(d) { return d.saldo > 0; });
+  // Usar deudas seleccionadas por el usuario
+  var deudas = getSelectedDeudas();
 
   if (!deudas.length) {
     set('plan-deudas-content', '<div class="empty"><div class="empty-icon">🎉</div>No tenés deudas registradas.</div>');
@@ -2613,6 +2688,7 @@ function abonarFondo(id) {
 
 function renderPlanificar() {
   calcScore();
+  renderDeudasSelector();
   setEstrategia(estrategiaActual);
   renderPlanAhorro();
   // Actualizar select del simulador
@@ -2941,28 +3017,197 @@ async function sendAI() {
     (bolInfo ? '- Bolsillos: '+bolInfo+'\n' : '')+
     '\nResponde en español, de forma concisa y práctica. Usa los datos reales del usuario. Sé directo y da recomendaciones específicas. Máximo 200 palabras.';
 
+  // Análisis local inteligente (sin CORS)
   try {
-    var response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 400,
-        system: contexto,
-        messages: [{role: 'user', content: pregunta}]
-      })
-    });
-    var data = await response.json();
-    var respuesta = data.content && data.content[0] ? data.content[0].text : 'No pude procesar tu pregunta. Intentá de nuevo.';
+    var respuesta = analizarPregunta(pregunta, ingT, egT, liq, disp);
     loadingEl.textContent = respuesta;
     loadingEl.classList.remove('loading');
   } catch(e) {
-    loadingEl.textContent = 'Error de conexión. Verificá tu internet e intentá de nuevo.';
+    loadingEl.textContent = 'No pude procesar tu pregunta. Intentá de nuevo.';
     loadingEl.classList.remove('loading');
   }
 
   var msgs = document.getElementById('ai-messages');
   msgs.scrollTop = msgs.scrollHeight;
+}
+
+function analizarPregunta(q, ingT, egT, liq, disp) {
+  q = q.toLowerCase();
+  var ingT2=sum('ingresos','monto');
+  var egT2=sum('prestamos','cuota')+sum('hipotecas','cuota')+sum('tarjetas','pago');
+  var subsMes=D.servicios.reduce(function(s,x){return s+eqMes(x.monto,x.frec);},0);
+  var provMes=D.seguros.reduce(function(s,x){return s+eqMes(x.monto,x.frec);},0);
+  var liq2=sum('bancos','saldo');
+  var disp2=ingT2-egT2-subsMes-provMes;
+  var deudaTotal=sum('prestamos','saldo')+sum('hipotecas','saldo')+sum('tarjetas','saldo');
+  var cxcPend=D.cxc.filter(function(x){return !x.cobrado;}).reduce(function(s,x){return s+parseFloat(x.monto||0);},0);
+  var vencidas=D.cxc.filter(function(x){return isVenc(x);}).length;
+
+  // Situación general
+  if(q.includes('situaci') || q.includes('resumen') || q.includes('estado') || q.includes('general')) {
+    var msg='📊 Tu situación financiera:
+
+';
+    msg+='💵 Ingresos fijos: '+fmt(ingT2)+'/mes
+';
+    msg+='📤 Compromisos: '+fmt(egT2+subsMes+provMes)+'/mes
+';
+    msg+=(disp2>=0?'✅ Disponible: '+fmt(disp2)+'/mes':'⚠️ Déficit: '+fmt(Math.abs(disp2))+'/mes')+'
+
+';
+    msg+='🏦 Liquidez bancaria: '+fmt(liq2)+'
+';
+    msg+='💳 Deuda total: '+fmt(deudaTotal)+'
+';
+    if(vencidas>0) msg+='
+🔴 Tenés '+vencidas+' CxC vencidas por cobrar.';
+    return msg;
+  }
+
+  // Tarjetas
+  if(q.includes('tarjeta') || q.includes('tdc') || q.includes('credito')) {
+    if(!D.tarjetas.length) return 'No tenés tarjetas registradas.';
+    var msg='💳 Tus tarjetas:
+
+';
+    D.tarjetas.forEach(function(t){
+      var u=t.limite>0?Math.round(t.saldo/t.limite*100):0;
+      msg+=t.nombre+': '+fmt(t.saldo)+'/'+fmt(t.limite)+' ('+u+'%)
+';
+      msg+='  Pago mínimo: '+fmt(t.pago)+' · Corte día '+t.dia+'
+';
+      if(u>=90) msg+='  ⚠️ CRÍTICO: muy cerca del límite
+';
+      else if(u>=70) msg+='  ⚠️ Alta utilización
+';
+      msg+='
+';
+    });
+    var tdcTotal=sum('tarjetas','saldo');
+    msg+='Total TDC: '+fmt(tdcTotal);
+    return msg;
+  }
+
+  // Disponible
+  if(q.includes('disponible') || q.includes('queda') || q.includes('libre') || q.includes('sobra')) {
+    var msg=disp2>=0
+      var msg=disp2>=0?'Este mes te quedan '+fmt(disp2)+' disponibles despues de cubrir todos tus compromisos.':'Este mes tenes un deficit de '+fmt(Math.abs(disp2))+'. Tus compromisos superan tus ingresos.';
+
+
+
+
+
+    msg+='Ingresos: '+fmt(ingT2)+' | Compromisos: '+fmt(egT2+subsMes+provMes);
+
+    if(liq2>0) msg+=' | Bancos: '+fmt(liq2);
+
+
+    return msg;
+  }
+
+  // Deudas
+  if(q.includes('deuda') || q.includes('préstamo') || q.includes('prestamo') || q.includes('liquidar')) {
+    if(!D.prestamos.length&&!D.tarjetas.length&&!D.hipotecas.length) return '🎉 No tenés deudas registradas.';
+    var msg='💰 Tus deudas:
+
+';
+    D.prestamos.forEach(function(p){ msg+='🏦 '+p.nombre+': '+fmt(p.saldo)+' (cuota '+fmt(p.cuota)+'/mes)
+'; });
+    D.hipotecas.forEach(function(h){ msg+='🏠 '+h.nombre+': '+fmt(h.saldo)+' (cuota '+fmt(h.cuota)+'/mes)
+'; });
+    D.tarjetas.forEach(function(t){ msg+='💳 '+t.nombre+': '+fmt(t.saldo)+'
+'; });
+    msg+='
+Total: '+fmt(deudaTotal);
+    msg+='
+
+💡 Ir a Planificar → Salir de deudas para ver el plan Avalanche o Snowball personalizado.';
+    return msg;
+  }
+
+  // CxC / cobrar
+  if(q.includes('cobrar') || q.includes('cxc') || q.includes('factura') || q.includes('cliente')) {
+    var pend=D.cxc.filter(function(x){return !x.cobrado;});
+    if(!pend.length) return '✅ No tenés facturas pendientes de cobro.';
+    var msg='💰 Por cobrar: '+fmt(cxcPend)+' en '+pend.length+' facturas
+
+';
+    pend.forEach(function(x){ 
+      var v=isVenc(x);
+      msg+=(v?'🔴':'🟡')+' '+x.cliente+': '+fmt(x.monto)+(x.fecha?' ('+x.fecha+')':'')+(v?' VENCIDA':'')+'
+';
+    });
+    return msg;
+  }
+
+  // Score
+  if(q.includes('score') || q.includes('salud') || q.includes('puntaje') || q.includes('mejorar')) {
+    var ratio=(egT2+subsMes+provMes)/ingT2;
+    var tdcMax=D.tarjetas.reduce(function(m,t){return Math.max(m,t.limite>0?t.saldo/t.limite:0);},0);
+    var mesesEmerg=egT2>0?liq2/egT2:0;
+    var msg='💚 Para mejorar tu score financiero:
+
+';
+    if(ratio>0.5) msg+='1️⃣ Reducí compromisos — usás el '+Math.round(ratio*100)+'% de tu ingreso en deudas (ideal <30%)
+';
+    if(tdcMax>0.7) msg+='2️⃣ Bajá el saldo de tarjetas — tenés tarjetas al '+Math.round(tdcMax*100)+'% de uso
+';
+    if(mesesEmerg<3) msg+='3️⃣ Construí un fondo de emergencia — tenés '+mesesEmerg.toFixed(1)+' meses cubiertos (ideal 3-6)
+';
+    if(vencidas>0) msg+='4️⃣ Cobrá las '+vencidas+' facturas vencidas — '+fmt(cxcPend)+' pendientes
+';
+    if(ratio<=0.5&&tdcMax<=0.7&&mesesEmerg>=3&&vencidas===0) msg+='¡Vas muy bien! Enfocate en hacer crecer tus metas de ahorro.';
+    return msg;
+  }
+
+  // Plan ahorro
+  if(q.includes('ahorro') || q.includes('ahorrar') || q.includes('meta') || q.includes('emergencia')) {
+    var msg='🎯 Plan de ahorro sugerido:
+
+';
+    if(disp2>0){
+      msg+='Tenés '+fmt(disp2)+' disponibles por mes.
+
+';
+      msg+='Distribución sugerida:
+';
+      msg+='• Fondo emergencia (meta: '+fmt(egT2*3)+'): '+fmt(disp2*0.4)+'/mes
+';
+      msg+='• Pago extra deudas: '+fmt(disp2*0.3)+'/mes
+';
+      msg+='• Ahorro personal: '+fmt(disp2*0.3)+'/mes
+
+';
+      msg+='Ir a Planificar → Metas de ahorro para configurarlas.';
+    } else {
+      msg+='Con el déficit actual, primero trabajá en reducir compromisos antes de ahorrar.';
+    }
+    return msg;
+  }
+
+  // Hipoteca
+  if(q.includes('hipoteca') || q.includes('apartamento') || q.includes('casa') || q.includes('equity')) {
+    if(!D.hipotecas.length) return 'No tenés hipoteca registrada.';
+    var h=D.hipotecas[0];
+    var eq=parseFloat(h.valor||0)-parseFloat(h.saldo||0);
+    return '🏠 '+h.nombre+'
+Saldo: '+fmt(h.saldo)+'
+Valor: '+fmt(h.valor)+'
+Equity: '+fmt(eq)+' ('+Math.round(eq/h.valor*100)+'%)
+Cuota: '+fmt(h.cuota)+'/mes';
+  }
+
+  // Default
+  return 'Podés preguntarme sobre:
+• Tu situación financiera actual
+• Tus tarjetas y deudas
+• Cuánto te queda disponible
+• Cómo mejorar tu score
+• Plan de ahorro
+• Facturas por cobrar
+• Tu hipoteca
+
+💡 También podés ir a Planificar para ver estrategias de pago de deudas.';
 }
 
 function addAIMessage(text, type) {
