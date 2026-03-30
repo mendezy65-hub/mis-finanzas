@@ -2330,9 +2330,9 @@ async function activarPlan() {
   var{error}=await sb.from('cxp').insert([{user_id:uid,proveedor:desc,monto:pagoExtra,fecha:fechaComp,categoria:'plan_deuda',pagado:false}]);
   if(error){err(error.message);return;}
   await loadAll();
-  alert('✅ Plan activado. Agregaste un compromiso de '+fmt(pagoExtra)+'/mes empezando el '+fechaComp+'.
+  alert('Plan activado. Compromiso de '+fmt(pagoExtra)+'/mes desde '+fechaComp+'. Aparece en Por Pagar cada mes.');
 
-Aparecerá en "Por Pagar" para que lo materialices cada mes.');
+
   renderAll();
 }
 
@@ -3042,172 +3042,78 @@ function analizarPregunta(q, ingT, egT, liq, disp) {
   var deudaTotal=sum('prestamos','saldo')+sum('hipotecas','saldo')+sum('tarjetas','saldo');
   var cxcPend=D.cxc.filter(function(x){return !x.cobrado;}).reduce(function(s,x){return s+parseFloat(x.monto||0);},0);
   var vencidas=D.cxc.filter(function(x){return isVenc(x);}).length;
+  var nl='\n';
 
-  // Situación general
-  if(q.includes('situaci') || q.includes('resumen') || q.includes('estado') || q.includes('general')) {
-    var msg='📊 Tu situación financiera:
-
-';
-    msg+='💵 Ingresos fijos: '+fmt(ingT2)+'/mes
-';
-    msg+='📤 Compromisos: '+fmt(egT2+subsMes+provMes)+'/mes
-';
-    msg+=(disp2>=0?'✅ Disponible: '+fmt(disp2)+'/mes':'⚠️ Déficit: '+fmt(Math.abs(disp2))+'/mes')+'
-
-';
-    msg+='🏦 Liquidez bancaria: '+fmt(liq2)+'
-';
-    msg+='💳 Deuda total: '+fmt(deudaTotal)+'
-';
-    if(vencidas>0) msg+='
-🔴 Tenés '+vencidas+' CxC vencidas por cobrar.';
-    return msg;
+  if(q.includes('situaci')||q.includes('resumen')||q.includes('estado')||q.includes('general')){
+    return '📊 Situación financiera:'+nl+nl+
+      '💵 Ingresos fijos: '+fmt(ingT2)+'/mes'+nl+
+      '📤 Compromisos: '+fmt(egT2+subsMes+provMes)+'/mes'+nl+
+      (disp2>=0?'✅ Disponible: '+fmt(disp2)+'/mes':'⚠️ Déficit: '+fmt(Math.abs(disp2))+'/mes')+nl+nl+
+      '🏦 Liquidez: '+fmt(liq2)+nl+
+      '💳 Deuda total: '+fmt(deudaTotal)+
+      (vencidas>0?nl+nl+'🔴 '+vencidas+' CxC vencidas por cobrar':'');
   }
 
-  // Tarjetas
-  if(q.includes('tarjeta') || q.includes('tdc') || q.includes('credito')) {
+  if(q.includes('tarjeta')||q.includes('tdc')||q.includes('credito')){
     if(!D.tarjetas.length) return 'No tenés tarjetas registradas.';
-    var msg='💳 Tus tarjetas:
-
-';
-    D.tarjetas.forEach(function(t){
-      var u=t.limite>0?Math.round(t.saldo/t.limite*100):0;
-      msg+=t.nombre+': '+fmt(t.saldo)+'/'+fmt(t.limite)+' ('+u+'%)
-';
-      msg+='  Pago mínimo: '+fmt(t.pago)+' · Corte día '+t.dia+'
-';
-      if(u>=90) msg+='  ⚠️ CRÍTICO: muy cerca del límite
-';
-      else if(u>=70) msg+='  ⚠️ Alta utilización
-';
-      msg+='
-';
-    });
-    var tdcTotal=sum('tarjetas','saldo');
-    msg+='Total TDC: '+fmt(tdcTotal);
-    return msg;
+    return '💳 Tus tarjetas:'+nl+nl+
+      D.tarjetas.map(function(t){
+        var u=t.limite>0?Math.round(t.saldo/t.limite*100):0;
+        return t.nombre+': '+fmt(t.saldo)+'/'+fmt(t.limite)+' ('+u+'%)'+(u>=90?' ⚠️ CRÍTICO':u>=70?' ⚠️ Alto':'');
+      }).join(nl)+nl+nl+'Total TDC: '+fmt(sum('tarjetas','saldo'));
   }
 
-  // Disponible
-  if(q.includes('disponible') || q.includes('queda') || q.includes('libre') || q.includes('sobra')) {
-    var msg=disp2>=0
-      var msg=disp2>=0?'Este mes te quedan '+fmt(disp2)+' disponibles despues de cubrir todos tus compromisos.':'Este mes tenes un deficit de '+fmt(Math.abs(disp2))+'. Tus compromisos superan tus ingresos.';
-
-
-
-
-
-    msg+='Ingresos: '+fmt(ingT2)+' | Compromisos: '+fmt(egT2+subsMes+provMes);
-
-    if(liq2>0) msg+=' | Bancos: '+fmt(liq2);
-
-
-    return msg;
+  if(q.includes('disponible')||q.includes('queda')||q.includes('libre')||q.includes('sobra')){
+    return (disp2>=0?'✅ Te quedan '+fmt(disp2)+' disponibles este mes.':'⚠️ Déficit de '+fmt(Math.abs(disp2))+' este mes.')+nl+nl+
+      'Ingresos: '+fmt(ingT2)+nl+
+      'Compromisos: '+fmt(egT2+subsMes+provMes)+
+      (liq2>0?nl+nl+'Tenés '+fmt(liq2)+' en bancos como respaldo.':'');
   }
 
-  // Deudas
-  if(q.includes('deuda') || q.includes('préstamo') || q.includes('prestamo') || q.includes('liquidar')) {
+  if(q.includes('deuda')||q.includes('préstamo')||q.includes('prestamo')||q.includes('liquidar')){
     if(!D.prestamos.length&&!D.tarjetas.length&&!D.hipotecas.length) return '🎉 No tenés deudas registradas.';
-    var msg='💰 Tus deudas:
-
-';
-    D.prestamos.forEach(function(p){ msg+='🏦 '+p.nombre+': '+fmt(p.saldo)+' (cuota '+fmt(p.cuota)+'/mes)
-'; });
-    D.hipotecas.forEach(function(h){ msg+='🏠 '+h.nombre+': '+fmt(h.saldo)+' (cuota '+fmt(h.cuota)+'/mes)
-'; });
-    D.tarjetas.forEach(function(t){ msg+='💳 '+t.nombre+': '+fmt(t.saldo)+'
-'; });
-    msg+='
-Total: '+fmt(deudaTotal);
-    msg+='
-
-💡 Ir a Planificar → Salir de deudas para ver el plan Avalanche o Snowball personalizado.';
-    return msg;
+    var lines=D.prestamos.map(function(p){return '🏦 '+p.nombre+': '+fmt(p.saldo)+' ('+fmt(p.cuota)+'/mes)';});
+    D.hipotecas.forEach(function(h){lines.push('🏠 '+h.nombre+': '+fmt(h.saldo)+' ('+fmt(h.cuota)+'/mes)');});
+    D.tarjetas.forEach(function(t){lines.push('💳 '+t.nombre+': '+fmt(t.saldo));});
+    return '💰 Tus deudas:'+nl+nl+lines.join(nl)+nl+nl+'Total: '+fmt(deudaTotal)+nl+nl+'💡 Ve a Planificar para ver el plan Avalanche o Snowball.';
   }
 
-  // CxC / cobrar
-  if(q.includes('cobrar') || q.includes('cxc') || q.includes('factura') || q.includes('cliente')) {
+  if(q.includes('cobrar')||q.includes('cxc')||q.includes('factura')||q.includes('cliente')){
     var pend=D.cxc.filter(function(x){return !x.cobrado;});
     if(!pend.length) return '✅ No tenés facturas pendientes de cobro.';
-    var msg='💰 Por cobrar: '+fmt(cxcPend)+' en '+pend.length+' facturas
-
-';
-    pend.forEach(function(x){ 
-      var v=isVenc(x);
-      msg+=(v?'🔴':'🟡')+' '+x.cliente+': '+fmt(x.monto)+(x.fecha?' ('+x.fecha+')':'')+(v?' VENCIDA':'')+'
-';
-    });
-    return msg;
+    return '💰 Por cobrar: '+fmt(cxcPend)+' en '+pend.length+' facturas'+nl+nl+
+      pend.map(function(x){return (isVenc(x)?'🔴':'🟡')+' '+x.cliente+': '+fmt(x.monto)+(x.fecha?' ('+x.fecha+')':'')+(isVenc(x)?' VENCIDA':'');}).join(nl);
   }
 
-  // Score
-  if(q.includes('score') || q.includes('salud') || q.includes('puntaje') || q.includes('mejorar')) {
+  if(q.includes('score')||q.includes('salud')||q.includes('puntaje')||q.includes('mejorar')){
     var ratio=(egT2+subsMes+provMes)/ingT2;
     var tdcMax=D.tarjetas.reduce(function(m,t){return Math.max(m,t.limite>0?t.saldo/t.limite:0);},0);
     var mesesEmerg=egT2>0?liq2/egT2:0;
-    var msg='💚 Para mejorar tu score financiero:
-
-';
-    if(ratio>0.5) msg+='1️⃣ Reducí compromisos — usás el '+Math.round(ratio*100)+'% de tu ingreso en deudas (ideal <30%)
-';
-    if(tdcMax>0.7) msg+='2️⃣ Bajá el saldo de tarjetas — tenés tarjetas al '+Math.round(tdcMax*100)+'% de uso
-';
-    if(mesesEmerg<3) msg+='3️⃣ Construí un fondo de emergencia — tenés '+mesesEmerg.toFixed(1)+' meses cubiertos (ideal 3-6)
-';
-    if(vencidas>0) msg+='4️⃣ Cobrá las '+vencidas+' facturas vencidas — '+fmt(cxcPend)+' pendientes
-';
-    if(ratio<=0.5&&tdcMax<=0.7&&mesesEmerg>=3&&vencidas===0) msg+='¡Vas muy bien! Enfocate en hacer crecer tus metas de ahorro.';
-    return msg;
+    var tips=[];
+    if(ratio>0.5) tips.push('1️⃣ Reducí compromisos (usás el '+Math.round(ratio*100)+'% en deudas, ideal <30%)');
+    if(tdcMax>0.7) tips.push('2️⃣ Bajá saldo de tarjetas ('+Math.round(tdcMax*100)+'% utilización)');
+    if(mesesEmerg<3) tips.push('3️⃣ Construí fondo emergencia (tenés '+mesesEmerg.toFixed(1)+' meses, ideal 3-6)');
+    if(vencidas>0) tips.push('4️⃣ Cobrá las '+vencidas+' facturas vencidas ('+fmt(cxcPend)+')');
+    return '💚 Para mejorar tu score:'+nl+nl+(tips.length?tips.join(nl):'¡Vas muy bien! Enfocate en hacer crecer tus metas de ahorro.');
   }
 
-  // Plan ahorro
-  if(q.includes('ahorro') || q.includes('ahorrar') || q.includes('meta') || q.includes('emergencia')) {
-    var msg='🎯 Plan de ahorro sugerido:
-
-';
-    if(disp2>0){
-      msg+='Tenés '+fmt(disp2)+' disponibles por mes.
-
-';
-      msg+='Distribución sugerida:
-';
-      msg+='• Fondo emergencia (meta: '+fmt(egT2*3)+'): '+fmt(disp2*0.4)+'/mes
-';
-      msg+='• Pago extra deudas: '+fmt(disp2*0.3)+'/mes
-';
-      msg+='• Ahorro personal: '+fmt(disp2*0.3)+'/mes
-
-';
-      msg+='Ir a Planificar → Metas de ahorro para configurarlas.';
-    } else {
-      msg+='Con el déficit actual, primero trabajá en reducir compromisos antes de ahorrar.';
-    }
-    return msg;
+  if(q.includes('ahorro')||q.includes('ahorrar')||q.includes('meta')||q.includes('emergencia')){
+    if(disp2<=0) return 'Con el déficit actual, primero trabajá en reducir compromisos antes de ahorrar.';
+    return '🎯 Con '+fmt(disp2)+' disponibles/mes, sugerido:'+nl+nl+
+      '• Fondo emergencia: '+fmt(disp2*0.4)+'/mes'+nl+
+      '• Pago extra deudas: '+fmt(disp2*0.3)+'/mes'+nl+
+      '• Ahorro personal: '+fmt(disp2*0.3)+'/mes'+nl+nl+
+      '→ Ve a Planificar → Metas de ahorro para configurarlas.';
   }
 
-  // Hipoteca
-  if(q.includes('hipoteca') || q.includes('apartamento') || q.includes('casa') || q.includes('equity')) {
+  if(q.includes('hipoteca')||q.includes('apartamento')||q.includes('casa')||q.includes('equity')){
     if(!D.hipotecas.length) return 'No tenés hipoteca registrada.';
     var h=D.hipotecas[0];
     var eq=parseFloat(h.valor||0)-parseFloat(h.saldo||0);
-    return '🏠 '+h.nombre+'
-Saldo: '+fmt(h.saldo)+'
-Valor: '+fmt(h.valor)+'
-Equity: '+fmt(eq)+' ('+Math.round(eq/h.valor*100)+'%)
-Cuota: '+fmt(h.cuota)+'/mes';
+    return '🏠 '+h.nombre+nl+'Saldo: '+fmt(h.saldo)+nl+'Valor: '+fmt(h.valor)+nl+'Equity: '+fmt(eq)+' ('+Math.round(eq/h.valor*100)+'%)'+nl+'Cuota: '+fmt(h.cuota)+'/mes';
   }
 
-  // Default
-  return 'Podés preguntarme sobre:
-• Tu situación financiera actual
-• Tus tarjetas y deudas
-• Cuánto te queda disponible
-• Cómo mejorar tu score
-• Plan de ahorro
-• Facturas por cobrar
-• Tu hipoteca
-
-💡 También podés ir a Planificar para ver estrategias de pago de deudas.';
+  return 'Podés preguntarme sobre:'+nl+'• Tu situación financiera actual'+nl+'• Tus tarjetas y deudas'+nl+'• Cuánto disponible tenés'+nl+'• Cómo mejorar tu score'+nl+'• Plan de ahorro'+nl+'• Facturas por cobrar'+nl+'• Tu hipoteca'+nl+nl+'💡 También ve a Planificar para estrategias de pago.';
 }
 
 function addAIMessage(text, type) {
